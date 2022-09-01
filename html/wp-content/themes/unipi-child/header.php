@@ -12,33 +12,7 @@ if (!defined('ABSPATH')) {
     exit; // Exit if accessed directly.
 }
 global $blog_id;
-$lid = 0;
 $ancestor = 0;
-/*if($blog_id == 2) {
-    $ancestor = get_post_ancestors($post);
-    $ancestor = end($ancestor);
-    if(ICL_LANGUAGE_CODE === 'en') {
-        if(is_page(12371) || $ancestor === 12371) { // L-INF
-            $lid = 1;
-        } else if(is_page(12336) || $ancestor === 12336) { // LM-WIF
-            $lid = 2;
-        } else if(is_page(12304) || $ancestor === 12304) { // LM-WEA
-            $lid = 3;
-        } else if(is_page(15632) || $ancestor === 15632) { // LM-WIN
-            $lid = 4;
-        }
-    } else {
-        if(is_page(12103) || $ancestor === 12103) { // L-INF
-            $lid = 1;
-        } else if(is_page(12104) || $ancestor === 12104) { // LM-WIF
-            $lid = 2;
-        } else if(is_page(12130) || $ancestor === 12130) { // LM-WEA
-            $lid = 3;
-        } else if(is_page(12131) || $ancestor === 12131) { // LM-WIN
-            $lid = 4;
-        }
-    }
-}*/
 $sublvl = 0;
 ?>
 <!DOCTYPE html>
@@ -60,43 +34,37 @@ $sublvl = 0;
 
                 <div class="preheader bgpantone">
                     <div class="container">
-                        <div class="row pt-2 pb-3">
-                            <div class="col-7 col-sm-8 d-flex align-items-end">
+                        <div class="row pt-2">
+                            <div class="col-7 col-sm-8 d-flex align-items-center">
                                 <div class="brand site-title">
                                     <!-- Your site title as branding in the menu -->
                                     <?php if (is_main_site()) { ?>
                                         <?php $blogname = __(get_bloginfo('name', 'display'), 'unipi-child'); ?>
-                                        <a class="site-title h2" rel="home" href="<?php echo esc_url(home_url('/')); ?>" title="<?php echo esc_attr($blogname); ?>" itemprop="url"><?= $blogname; ?></a>
+                                        <?php
+                                            if (has_custom_logo() && $show !== 'title') {
+                                                the_custom_logo();
+                                            } else {
+                                                echo '<a class="site-title h2" rel="home" href="<?php echo esc_url(home_url('/')); ?>" title="<?php echo esc_attr($blogname); ?>" itemprop="url">' . $blogname . '</a>';
+                                            }
+                                            ?>
 
                                         <?php
                                     } else { ?>
                                         <?php
                                         $subsite = (array) explode('-', get_bloginfo('name'));
                                         $subsite = trim(current($subsite));
-                                        $subsite = __($subsite, 'unipi-child');
-                                        $blogname = __(get_blog_option( 1, 'blogname' ), 'unipi-child');
+                                        $subsite = __($subsite, 'unipi');
+                                        $blogname = __('Dipartimento di Matematica', 'unipi');
                                         $sublvl++;
                                         ?>
-                                        <a class="site-title h2" href="<?php echo esc_url(network_site_url()); ?>" title="<?php echo esc_attr($blogname); ?>" itemprop="url"><?= $blogname; ?></a><br />
-                                        <a class="site-sub-title" rel="home" href="<?php echo esc_url(home_url('/')); ?>" title="<?php echo esc_attr(get_bloginfo('name', 'display')); ?>" itemprop="url"><?= $subsite; ?></a>
-                                        <?php
-                                        /*if($lid > 0) {
-                                            switch ($lid) {
-                                                case 1:
-                                                case 2:
-                                                case 3:
-                                                case 4:
-                                                    $title = get_the_title($ancestor);
-                                                    echo ' <span class="fsub"><i class="fas fa-angle-right fa-fw"></i></span> <a class="site-sub-sub-title" href="' . esc_url(get_the_permalink($ancestor)) . '" title="'.esc_attr($title).'" itemprop="url">'.$title.'</a>';
-                                                    break;
-                                                
-                                                default:
-                                                    # code...
-                                                    break;
+                                        <a class="site-title h2" href="<?php echo esc_url(network_site_url()); ?>" title="<?php echo esc_attr($blogname); ?>" itemprop="url"><?php
+                                            if (has_custom_logo() && $show !== 'title') {
+                                                the_custom_logo();
+                                            } else {
+                                                echo $blogname;
                                             }
-                                            $sublvl++;
-                                        }*/
-                                        ?>
+                                            ?></a><br />
+                                        <a class="site-sub-title d-inline-block mt-2" rel="home" href="<?php echo esc_url(home_url('/')); ?>" title="<?php echo esc_attr(get_bloginfo('name', 'display')); ?>" itemprop="url"><?= $subsite; ?></a>
                                     <?php }
                                     ?><!-- end custom logo -->
                                 </div>
@@ -162,25 +130,6 @@ $sublvl = 0;
                             $depth = 6;
                         }
                         $menuname = 'primary';
-                        if($lid > 0) {
-                            switch ($lid) {
-                                case 1:
-                                    $menuname = 'l-inf';
-                                    break;
-                                case 2:
-                                    $menuname = 'lm-wif';
-                                    break;
-                                case 3:
-                                    $menuname = 'lm-wds';
-                                    break;
-                                case 4:
-                                    $menuname = 'lm-win';
-                                    break;
-                                
-                                default:
-                                    break;
-                            }
-                        }
 
                         echo '<div id="navbarNavDropdown" class="collapse navbar-collapse">';
                         wp_nav_menu(

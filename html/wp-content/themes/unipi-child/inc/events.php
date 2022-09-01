@@ -112,9 +112,17 @@ function upcomingeventsms($atts) {
             $ret[] = '<span class="location mr-2"><span class="fas fa-map-marker-alt"></span> ' . $location . '</span>';
         }
         if(has_term('', 'unipievents_taxonomy')) {
-            $term_list = get_the_term_list( get_the_ID(), 'unipievents_taxonomy', '', ', ', '' );
-            if ( !is_wp_error( $term_list ) ) {
-                $ret[] = '<span class="tag mr-2"><i class="fa fa-tags"></i> ' . apply_filters( 'the_terms', $term_list, 'unipievents_taxonomy', '', ', ', '' ) . '</span>';
+            $tlist = get_the_terms(get_the_ID(), 'unipievents_taxonomy');
+            $links = [];
+            if(is_array($tlist)) {
+                foreach ($tlist as $t) {
+                    $link = get_term_link( $t, 'unipievents_taxonomy' );
+                    if ( is_wp_error( $link ) ) {
+                        continue;
+                    }
+                    $links[$t->term_id] = '<a href="' . esc_url( $link ) . '" rel="tag">' . $t->name . '</a>';
+                }
+                $ret[] = '<span class="tag mr-2"><i class="fa fa-tags"></i> ' . implode(', ', $links) . '</span>';
             }
         }
 
@@ -138,3 +146,28 @@ function upcomingeventsms($atts) {
 }
 
 add_shortcode('eventsmulti', 'upcomingeventsms');
+
+/* Default content */
+add_filter( 'default_content', 'my_editor_content', 10, 2 );
+ 
+function my_editor_content( $content, $post ) {
+ 
+    if( $post->post_type === 'unipievents' ) {
+        $content = '<!-- wp:paragraph -->
+<p>TBA</p>
+<!-- /wp:paragraph -->';
+    }
+ 
+    return $content;
+}
+
+add_filter('the_title', 'new_title', 10, 2);
+function new_title($title, $id) {
+    if('unipievents' === get_post_type($id)) {
+        $fields = get_fields($id);
+        if(isset($fields['speaker']) && strlen(trim($fields['speaker'])) > 0 && isset($fields['affiliation']) && strlen(trim($fields['affiliation'])) > 0) {
+            $title .= ' &ndash; ' . esc_html($fields['speaker']) . ' (' . $fields['affiliation'] . ')';
+        }
+    }
+    return $title;
+}
