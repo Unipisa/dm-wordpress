@@ -401,7 +401,7 @@ function get_people_role_label($role, $lang = 'it', $genre = 'm') {
 		'PO' => ['Professore Ordinario', 'Professoressa Ordinaria', 'Full Professor', 'Full Professor'],
 		'PA' => ['Professore Associato', 'Professoressa Associata', 'Associate Professor', 'Associate Professor'],
 		'RTDb' => ['Ricercatore a tempo determinato senior', 'Ricercatrice a tempo determinato senior', 'Tenure-track Assistant Professor', 'Tenure-track Assistant Professor'],
-		'RTDa' => ['Ricercatore a tempo determinato junior', 'Ricercatrice a tempo determinato junior', 'Tenure-track Assistant Professor', 'Non-tenured Assistant Professor'],
+		'RTDa' => ['Ricercatore a tempo determinato junior', 'Ricercatrice a tempo determinato junior', 'Non-Tenure-Track Assistant Professor', 'Non-Tenure-Track Assistant Professor'],
 		'RIC' => ['Ricercatore a tempo indeterminato', 'Ricercatrice a tempo indeterminato', 'Tenured Assistant Professor', 'Tenured Assistant Professor'],
 		'Assegnista' => ['Assegnista', 'Assegnista', 'Postdoctoral Fellow', 'Postdoctoral Fellow'],
 		'Dottorando' => ['Dottorando', 'Dottoranda', 'Ph.D. Student', 'Ph.D. Student'],
