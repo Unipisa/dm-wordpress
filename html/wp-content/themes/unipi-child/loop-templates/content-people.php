@@ -77,7 +77,11 @@ $fields = get_fields();
                         ?>
 
                         <?= isset($fields['piano']) ? $floor : '' ?>, <?= __('Room', 'unipi') ?> <?= isset($fields['stanza']) ? $fields['stanza'] : '' ?>,<br>
-                        L.go B. Pontecorvo, 5, 56127 Pisa (PI), Italy.
+                        <?php if ($fields['edificio'] == 'Ex Albergo'): ?>
+                          Via Buonarroti, 1/c, 56127 Pisa (PI), Italy.
+                        <?php else: ?>
+                          L.go B. Pontecorvo, 5, 56127 Pisa (PI), Italy.
+                        <?php endif; ?>
                     </div>
                 </div>
                 <?php endif; ?>
