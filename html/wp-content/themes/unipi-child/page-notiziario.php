@@ -179,17 +179,17 @@ if ( ! defined( 'ABSPATH' ) ) {
 
     ?>
     <h2>Prossimi seminari</h2>
-    <div style="height: 10px;">&nbsp;</div>
+    <div style="height: 10px; margin-top: -10px;">&nbsp;</div>
     <?php print_events(75) ?>
     <p>&nbsp;</p>
 
     <h2>Prossime conferenze a Pisa</h2>
-    <div style="height: 10px;">&nbsp;</div>
+    <div style="height: 10px; margin-top: -10px;">&nbsp;</div>
     <?php print_events(90, 196) ?>
     <p>&nbsp;</p>
     
     <h2>Ultime notizie</h2>
-    <div style="height: 10px;">&nbsp;</div>
+    <div style="height: 10px; margin-top: -10px;">&nbsp;</div>
     <?php
     $type = 'post';
     $limit = 20;

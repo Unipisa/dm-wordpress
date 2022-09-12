@@ -43,7 +43,7 @@ if ( ! defined( 'ABSPATH' ) ) {
                 array(
                     'key'=>'unipievents_startdate',
                     'compare' => '<=',
-                    'value' => time() + (7 * 24 * 60 * 60)
+                    'value' => time() + (7 * 24 * 60 * 60 + 3600 * 8)
                 ),
             ),
             'meta_key'=>'unipievents_startdate',

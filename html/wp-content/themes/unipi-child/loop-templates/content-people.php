@@ -23,9 +23,12 @@ $fields = get_fields();
 
         <div class="d-flex flex-wrap align-middle">
             <?php if( has_post_thumbnail() && $size !== 'none' ): ?>
-                
                 <div class="mr-4 mb-4">
                     <?php the_post_thumbnail('thumbnail', ['class' => 'rounded img-fluid']); ?>
+                </div>
+            <?php else: ?>
+                <div class="mr-4 mb-4">
+                    <img src="https://i0.wp.com/www.dm.unipi.it/wp-content/uploads/2022/07/No-Image-Placeholder.svg_.png?resize=280%2C280&amp;ssl=1" class="rounded img-fluid wp-post-image jetpack-lazy-image jetpack-lazy-image--handled" alt="" data-lazy-loaded="1" loading="eager" width="280" height="280">
                 </div>
             <?php endif; ?>
 

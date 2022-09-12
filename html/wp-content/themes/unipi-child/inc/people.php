@@ -319,10 +319,10 @@ function peopleshortcode($atts) {
 		    		switch ($f) {
 		    			case 'email-ruolo-persona':
 		    			case 'email':
-		    				$aux[] = '<a href="mailto:'.$acf[$f].'"><i class="far fa-envelope fa-fw"></i></a>';
+		    				$aux[] = '<a href="mailto:'.$acf[$f].'"><i class="far fa-envelope fa-fw"></i>' . " <span class=\"d-none d-lg-inline\">$acf[$f]</span></a>";
 		    				break;
 		    			case 'telefono':
-		    				$aux[] = '<a href="tel:'.$acf[$f].'"><i class="fas fa-phone-alt fa-fw"></i></a>';
+		    				$aux[] = '<a href="tel:'.$acf[$f].'"><i class="fas fa-phone-alt fa-fw"></i>' . " <span class=\"d-none d-lg-inline\">$acf[$f]</span</a>";
 		    				break;
 		    			default:
 		    				$aux[] = $acf[$f];
