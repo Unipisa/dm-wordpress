@@ -191,19 +191,49 @@ $fields = get_fields();
            
         } else if(in_array('dottorato', $catlist) || in_array('ph-d', $catlist)) {
             $title_course = isset($fields['title_course']) ? $fields['title_course'] : '';
-            $title_person = isset($fields['title_person']) ? $fields['title_person'] : '';
             $name = isset($fields['name']) ? $fields['name'] : '';
             $date = isset($fields['date']) ? $fields['date'] : '';
             $time = isset($fields['time']) ? $fields['time'] : '';
             $room = isset($fields['room']) ? $fields['room'] : '';
+            $course_link = isset($fields['course_link']) ? $fields['course_link'] : '';
 
-            if($title_course != '' && $title_person != '') {
+            if($title_course != '') {
                 if (ICL_LANGUAGE_CODE == 'en') {
-                    echo '<p>We are pleased to announce the first lesson of the Course “' . $title_course . '”, given by ' . $title_person . ' ' . $name . ', on ' . $date . ' at ' . $time . ' in the Room “' . $room . '”.</p>';
-                    echo '<p>All the information is available on the <a href="https://www.dm.unipi.it/phd/current-ph-d-courses/">page of the current Ph.D. courses</a>.</p>';
+                    echo '<p>We are pleased to announce the Course “' . $title_course . '”, given by ' . $name . '.</p>';
+                    if ($date) {
+                        echo '<p>The first lesson will take place on ' . $date;
+                        if ($time) {
+                             echo ' at ' . $time;
+                        }
+                        if ($room) {
+                            echo ' in “' . $room . '”';
+                        }
+                        echo ".</p>";
+                    }
+                    if ($course_link) {
+                        echo '<p>All the information is available on the <a href="' . $course_link . '">page of the course</a> and on the <a href="https://www.dm.unipi.it/phd/current-ph-d-courses/">page of the current Ph.D. courses</a>.</p>';
+                    }
+                    else {
+                        echo '<p>All the information is available on the <a href="https://www.dm.unipi.it/phd/current-ph-d-courses/">page of the current Ph.D. courses</a>.</p>';
+                    }
                 } else {
-                    echo '<p>Si comunica che la prima lezione del Corso “' . $title_course . '”, tenuto dal ' . $title_person . ' ' . $name . ', si terrà il giorno ' . $date . ' alle ore ' . $time . ' in stanza “' . $room . '”.</p>';
-                    echo '<p>Tutte le informazioni sono disponibili alla <a href="https://www.dm.unipi.it/phd/current-ph-d-courses/">pagina dei corsi di dottorato</a>.</p>';
+                    echo "<p>Si comunica l'attivazione del corso“" . $title_course . '”, tenuto da ' . $name . '.</p>';
+                    if ($date) {
+                        echo '<p>La prima lezione si terrà il giorno ' . $date;
+                        if ($time) {
+                             echo ' alle ore ' . $time;
+                        }
+                        if ($room) {
+                            echo ' in “' . $room . '”';
+                        }
+                        echo ".</p>";
+                    }
+                    if ($course_link) {
+                        echo '<p>Tutte le informazioni sono disponibili alla <a href="' . $course_link . '">pagina del corso</a> e alla <a href="https://www.dm.unipi.it/phd/current-ph-d-courses/">pagina dei corsi di dottorato</a>.</p>';
+                    }
+                    else {
+                        echo '<p>Tutte le informazioni sono disponibili alla <a href="https://www.dm.unipi.it/phd/current-ph-d-courses/">pagina dei corsi di dottorato</a>.</p>';
+                    }
                 }
             }
         }
