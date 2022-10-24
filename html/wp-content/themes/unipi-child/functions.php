@@ -62,6 +62,7 @@ $unipi_includes = array(
     '/setupchild.php',                      // Child theme setup and custom theme supports.
     '/people.php',
     '/grants.php',
+    '/visitors.php',
     '/events.php',
     '/page-walker.php',
     '/unimap.php',
