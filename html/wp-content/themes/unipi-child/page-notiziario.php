@@ -22,7 +22,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 <body>
     <?php
     function print_events($cat, $tags = null) {
-        $limit = 6;
+        $limit = 100;
         $layout = 'default';
 
         $current_blog_id = get_current_blog_id();
