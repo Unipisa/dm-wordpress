@@ -59,7 +59,7 @@ $sublvl = 0;
                                         ?>
                                         <a class="site-title h2" href="<?php echo esc_url(network_site_url()); ?>" title="<?php echo esc_attr($blogname); ?>" itemprop="url"><?php
                                             if (has_custom_logo() && $show !== 'title') {
-                                                the_custom_logo();
+                                                the_custom_logo(1);
                                             } else {
                                                 echo $blogname;
                                             }
