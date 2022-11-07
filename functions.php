@@ -66,6 +66,7 @@ $unipi_includes = array(
     '/events.php',
     '/page-walker.php',
     '/unimap.php',
+    '/dm_manager.php',
 );
 
 foreach ( $unipi_includes as $file ) {
