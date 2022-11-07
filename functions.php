@@ -62,6 +62,7 @@ $unipi_includes = array(
     '/setupchild.php',                      // Child theme setup and custom theme supports.
     '/people.php',
     '/grants.php',
+    '/visitors.php',
     '/events.php',
     '/page-walker.php',
     '/unimap.php',
@@ -359,3 +360,57 @@ function unipi_all_excerpts_get_more_link( $post_excerpt ) {
     }
     return $post_excerpt;
 }
+
+/* testing Emanuele */
+function visitor_accordion($atts)
+{
+	return <<<EOF
+     <table class="peopletable table table-sm table-bordered">
+      <thead>
+       <tr>
+        <th>Nome</th><th>Cognome</th><th>Affiliazione</th><th>Edificio</th><th>Stanza</th>
+       </tr>
+      </thead>
+     <tbody id="visitors_tbody"></tbody>
+    </table>
+  <script>
+    (function () {
+        function newEl(s,t) {
+          let el=document.createElement(s)
+          if (t) el.textContent = t
+          return el
+        }
+	fetch('https://manage.dm.unipi.it/api/v0/public/visit/')
+  	  .then((response) => response.json())
+          .then((data) => {
+	    const { visits } = data;
+            const tbody = document.getElementById("visitors_tbody");
+            tbody.replaceChildren(...visits.map(visit => {
+    		const tr = newEl("tr")
+                tr.appendChild(newEl("td", visit.firstName))
+	  	tr.appendChild(newEl("td", visit.lastName))
+		tr.appendChild(newEl("td", visit.affiliation))
+		tr.appendChild(newEl("td", visit.building))
+		tr.appendChild(newEl("td", visit.roomNumber))
+                return tr
+	    }))
+	})
+    })()
+  </script>
+<!-- visitor_accordion 
+-->
+EOF;
+}
+
+add_shortcode('visitor_accordion', 'visitor_accordion');
+
+function table_sorter($atts) 
+{
+  return <<<EOF
+  <!-- table_sorter -->
+EOF;
+}
+
+add_shortcode('table_sorter', 'table_sorter');
+
+

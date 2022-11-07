@@ -1,6 +1,0 @@
-{
-    "require": {
-        "swiftmailer/swiftmailer": "^6.0",
-        "soundasleep/html2text": "~1.1"
-    }
-}

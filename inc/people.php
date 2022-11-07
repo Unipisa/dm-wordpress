@@ -331,7 +331,7 @@ function peopleshortcode($atts) {
 		    	} else {
 		    		switch ($f) {
 		    			case 'link':
-		    				$aux[] = '<a href="'.get_the_permalink(get_the_ID()).'"><i class="fas fa-id-card fa-fw"></i></i></a>';
+		    				$aux[] = '<a href="'.get_the_permalink(get_the_ID()).'"><i class="fas fa-id-card fa-fw"></i></i><!-- id='.get_the_ID().' --></a>';
 		    				break;
 		    			case 'toptaglabel':
 		    				$aux[] = $istop ? $toptaglabel : '&nbsp;';

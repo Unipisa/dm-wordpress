@@ -59,18 +59,18 @@ $sublvl = 0;
                                         ?>
                                         <a class="site-title h2" href="<?php echo esc_url(network_site_url()); ?>" title="<?php echo esc_attr($blogname); ?>" itemprop="url"><?php
                                             if (has_custom_logo() && $show !== 'title') {
-                                                the_custom_logo();
+                                                the_custom_logo(1);
                                             } else {
                                                 echo $blogname;
                                             }
                                             ?></a><br />
-                                        <a class="site-sub-title d-inline-block mt-2" rel="home" href="<?php echo esc_url(home_url('/')); ?>" title="<?php echo esc_attr(get_bloginfo('name', 'display')); ?>" itemprop="url"><?= $subsite; ?></a>
+                                            <a class="site-sub-title d-inline-block mt-2" rel="home" href="<?php echo esc_url(home_url('/')); ?>" title="<?php echo esc_attr(get_bloginfo('name', 'display')); ?>" itemprop="url"><?= $subsite; ?></a>
                                     <?php }
                                     ?><!-- end custom logo -->
                                 </div>
                             </div>
-                            <div class="col-5 col-sm-4 d-flex align-items-center justify-content-end">
-                                <a href="https://www.unipi.it"><img src="<?= get_template_directory_uri() ?>/images/cherubino-white.svg" alt="cherubino" class="img-fluid logocherubino" /></a>
+                            <div class="col-5 col-sm-4 d-flex align-items-top justify-content-end">
+                                <a href="https://www.unipi.it" class="pt-3"><img src="<?= get_template_directory_uri() ?>/images/cherubino-white.svg" alt="cherubino" class="img-fluid logocherubino" /></a>
                             </div>
                         </div>
                         <div class="row small pt-1 pb-2">
