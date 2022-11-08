@@ -32,13 +32,12 @@ function dm_manager_get() {
 	    $ret[] = '<!-- 200 OK -->';
 	    $fields = ['firstName', 'lastName', 'affiliation', 'roomNumber'];
 	    if (isset($resp['data'])) {
-		$ret[] = '<table>';
-
-		$ret[] = '<tr>';
+		$ret[] = '<table class="peopletable">';
+		$ret[] = '<thead><tr>';
 		foreach ($fields as $field) {
 			$ret[]='<th>'.$field.'</th>';
 		}
-		$ret[] = '</tr>';
+		$ret[] = '</tr></thead><tbody>';
 
 		foreach ($resp['data'] as $row) {
 			$ret[]='<tr>';
@@ -47,7 +46,7 @@ function dm_manager_get() {
 			}
 			$ret[]='</tr>';
 		}
-		$ret[] = '</table>';
+		$ret[] = '</tbody></table>';
 	    }
         }
 	$ret[] = '<!-- END dm_manager_get -->';
