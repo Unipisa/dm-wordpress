@@ -4,15 +4,23 @@ if ( !defined( 'ABSPATH' ) ) exit;
 
 include 'secrets.php';
 
-function dm_manager_get($fields, $table, $sort_field) {
+function dm_manager_get($fields, $table, $sort_field, $filter) {
         $ch = curl_init();
 
 	$ret[] = '<!-- START dm_manager_get -->';
 
-        curl_setopt($ch, CURLOPT_URL, DM_MANAGER_URL . 'visit?_sort=' . $sort_field);
+        $query = [];
+        $query[] = '_sort=' . $sort_field;
+        if ($filter == 'current') {
+                $query[] = 'startDate__lt=today';
+                $query[] = 'endDate__gt=today';
+        }
+
+	$ret[] = '<!-- QUERY_STRING ' . implode('&', $query);
+
+        curl_setopt($ch, CURLOPT_URL, DM_MANAGER_URL . 'visit?' . implode('&', $query));
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
         curl_setopt($ch, CURLOPT_CUSTOMREQUEST, 'GET');
-
 
         $headers = array();
         $headers[] = 'Accept: application/json';
@@ -59,13 +67,14 @@ function dm_manager_shortcode( $atts ) {
         'table' => false,
         'tableen' => false,
 	'sort_field' => 'lastName',
+	'filter' => false,
     ), $atts));
 
     if (get_locale() !== 'it_IT' && $tableen) {
 	$table = $tableen;
     }
 
-    $ret = dm_manager_get(explode(',', $fields), explode(',', $table), $sort_field);
+    $ret = dm_manager_get(explode(',', $fields), explode(',', $table), $sort_field, $filter);
     return $ret;
 }
 add_shortcode('dm_manager', 'dm_manager_shortcode');
