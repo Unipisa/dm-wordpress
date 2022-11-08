@@ -4,12 +4,12 @@ if ( !defined( 'ABSPATH' ) ) exit;
 
 include 'secrets.php';
 
-function dm_manager_get() {
+function dm_manager_get($fields, $table, $sort_field) {
         $ch = curl_init();
 
 	$ret[] = '<!-- START dm_manager_get -->';
 
-        curl_setopt($ch, CURLOPT_URL, DM_MANAGER_URL . 'visit?_sort=lastName');
+        curl_setopt($ch, CURLOPT_URL, DM_MANAGER_URL . 'visit?_sort=' . $sort_field);
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
         curl_setopt($ch, CURLOPT_CUSTOMREQUEST, 'GET');
 
@@ -30,12 +30,11 @@ function dm_manager_get() {
 	    // $ret[] = '<p>RESULT: ' . $result . '</p>';
             $resp = json_decode($result, true);
 	    $ret[] = '<!-- 200 OK -->';
-	    $fields = ['firstName', 'lastName', 'affiliation', 'roomNumber'];
 	    if (isset($resp['data'])) {
 		$ret[] = '<table class="peopletable">';
 		$ret[] = '<thead><tr>';
-		foreach ($fields as $field) {
-			$ret[]='<th>'.$field.'</th>';
+		foreach ($table as $header) {
+			$ret[]='<th>'.$header.'</th>';
 		}
 		$ret[] = '</tr></thead><tbody>';
 
@@ -55,7 +54,18 @@ function dm_manager_get() {
 
 /* Shortcode */
 function dm_manager_shortcode( $atts ) {
-    $ret = dm_manager_get();
+        extract(shortcode_atts(array(
+        'fields' => 'cognome',
+        'table' => false,
+        'tableen' => false,
+	'sort_field' => 'lastName',
+    ), $atts));
+
+    if (get_locale() !== 'it_IT' && $tableen) {
+	$table = $tableen;
+    }
+
+    $ret = dm_manager_get(explode(',', $fields), explode(',', $table), $sort_field);
     return $ret;
 }
 add_shortcode('dm_manager', 'dm_manager_shortcode');
