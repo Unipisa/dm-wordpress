@@ -9,7 +9,9 @@
 			$('.tml-button').addClass('btn btn-dark').css('min-width', '118px');
 		}
 
-		
+		// $('.grantslist > li').hide();
+                // $('.grantslist .current').show();
+
 		if($('.grantsform').length) {
 		  $('.grantsform select').on('change', function(e) {
 			  var cl = [];

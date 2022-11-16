@@ -120,7 +120,7 @@ $fields = get_fields();
                 if($bando_incarico && $mesi_incarico) {
                     echo '<p>';
                     if($mesi_incarico) {
-                        echo 'Un incarico di lavoro autonomo è disponibile presso il Dipartimento di Matematica, della durata di ' . $mesi_incarico . ' mesi.';
+                        echo 'Un incarico di lavoro autonomo è disponibile presso il Dipartimento di Matematica, della durata di ' . $mesi_incarico . (($mesi_incarico == 1) ? ' mese.' : ' mesi.');
                     }
                     if($bando_incarico) {
                         echo ' È possibile consultare il bando alla pagina relativa: <a href="' . $bando_incarico . '" target="_blank"><i class="fas fa-external-link-alt"></i></a>';

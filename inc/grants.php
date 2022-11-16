@@ -28,10 +28,15 @@ function grantsshortcode($atts) {
 	                'key'       => 'tipologia_progetto',
 	                'compare'   => 'EXISTS',
 	            ),
+		    'termine_clause' => array(
+                        'key' => 'termine',
+                        'compare' => 'EXISTS'
+                    )
 	        )
 	    ),
 	    'orderby' => array(
-	        'tipologia_progetto_clause' => 'ASC',
+	        // 'tipologia_progetto_clause' => 'ASC',
+                'termine_clause' => 'DESC',
 	        'post_title' => 'ASC',
 	    )
     );
@@ -138,6 +143,7 @@ terza riga = componenti dell'unità
 				$lbl = $lang == 'it' ? 'Membri dell\'unità' : 'Members of the Research Unit';
 				$aux[] = '<p class="mb-0">' . $lbl . ': <em>' . $acf['componenti_unita'] . '</em></p>';
 			}
+			$aux[] = '<p class="mb-0">Project period: ' . $acf['inizio'] . ' - ' . $acf['termine'] . '</p>';
 
 			$aux[] = '</li>';
 

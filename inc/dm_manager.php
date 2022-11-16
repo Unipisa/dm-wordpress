@@ -62,7 +62,7 @@ function dm_manager_get($fields, $table, $sort_field, $filter) {
 
 /* Shortcode */
 function dm_manager_shortcode( $atts ) {
-        extract(shortcode_atts(array(
+    extract(shortcode_atts(array(
         'fields' => 'cognome',
         'table' => false,
         'tableen' => false,
@@ -74,7 +74,10 @@ function dm_manager_shortcode( $atts ) {
 	$table = $tableen;
     }
 
-    $ret = dm_manager_get(explode(',', $fields), explode(',', $table), $sort_field, $filter);
+    $e_fields = explode(',', $fields);
+    $e_fields = array_map(function ($x) { return trim($x); }, $e_fields);
+
+    $ret = dm_manager_get($e_fields, explode(',', $table), $sort_field, $filter);
     return $ret;
 }
 add_shortcode('dm_manager', 'dm_manager_shortcode');
