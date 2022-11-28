@@ -21,6 +21,10 @@ function dm_manager_get($fields, $table, $sort_field, $filter) {
         if ($filter == 'current') {
                 $query[] = 'startDate__lt=today';
                 $query[] = 'endDate__gt=today';
+        } elseif ($filter == 'past') {
+                $query[] = 'endDate__lt=today';
+	} elseif ($filter == 'perspective') {
+                $query[] = 'startDate__gt=today';
         }
 
 	$ret[] = '<!-- QUERY_STRING ' . implode('&', $query);
