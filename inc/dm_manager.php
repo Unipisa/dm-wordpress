@@ -4,6 +4,13 @@ if ( !defined( 'ABSPATH' ) ) exit;
 
 include 'secrets.php';
 
+function get_dotted_field($obj, $dotted_field) {
+	foreach (explode(".", $dotted_field) as $field) {
+		$obj = $obj[$field];
+	}
+	return $obj;
+}
+
 function dm_manager_get($fields, $table, $sort_field, $filter) {
         $ch = curl_init();
 
@@ -49,7 +56,8 @@ function dm_manager_get($fields, $table, $sort_field, $filter) {
 		foreach ($resp['data'] as $row) {
 			$ret[]='<tr>';
 			foreach ($fields as $field) {
-				$ret[]='<td>'.$row[$field].'</td>';
+				$ret[]='<td>'.get_dotted_field($row, $field).'</td>';
+//				$ret[]='<td>'.$row[$field].'</td>';
 			}
 			$ret[]='</tr>';
 		}
@@ -66,7 +74,7 @@ function dm_manager_shortcode( $atts ) {
         'fields' => 'cognome',
         'table' => false,
         'tableen' => false,
-	'sort_field' => 'lastName',
+	'sort_field' => 'person',
 	'filter' => false,
     ), $atts));
 
