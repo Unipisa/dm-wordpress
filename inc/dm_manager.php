@@ -29,6 +29,8 @@ function dm_manager_get($fields, $table, $sort_field, $filter) {
                 $query[] = 'endDate__lt=today';
 	  } elseif ($key == 'perspective') {
                 $query[] = 'startDate__gt=today';
+          } elseif ($key == 'year') {
+		$query[] = 'startDate__lte=' . $val . '-12-31&endDate__gte=' . $val . '-01-01';
           } else {
 		$query[] = $key . '=' . $val;
 	  }
