@@ -18,14 +18,21 @@ function dm_manager_get($fields, $table, $sort_field, $filter) {
 
         $query = [];
         $query[] = '_sort=' . $sort_field;
-        if ($filter == 'current') {
+	foreach (explode(",", $filter) as $f) {
+          $key_val = explode("=", $f);
+	  $key = $key_val[0];
+	  $val = $key_val[1];
+          if ($key == 'current') {
                 $query[] = 'startDate__lt=today';
                 $query[] = 'endDate__gt=today';
-        } elseif ($filter == 'past') {
+          } elseif ($key == 'past') {
                 $query[] = 'endDate__lt=today';
-	} elseif ($filter == 'perspective') {
+	  } elseif ($key == 'perspective') {
                 $query[] = 'startDate__gt=today';
-        }
+          } else {
+		$query[] = $key . '=' . $val;
+	  }
+	}
 
 	$ret[] = '<!-- QUERY_STRING ' . implode('&', $query);
 
