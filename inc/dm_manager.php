@@ -19,6 +19,7 @@ function dm_manager_get($fields, $table, $sort_field, $filter) {
         $query = [];
         $query[] = '_sort=' . $sort_field;
 	foreach (explode(",", $filter) as $f) {
+	  $f=trim($f);
           $key_val = explode("=", $f);
 	  $key = $key_val[0];
 	  $val = $key_val[1];
