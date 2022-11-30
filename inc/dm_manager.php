@@ -11,7 +11,7 @@ function get_dotted_field($obj, $dotted_field) {
 	return $obj;
 }
 
-function dm_manager_get($fields, $table, $sort_field, $filter) {
+function dm_manager_get($fields, $table, $sort_field, $filter, $no_data_message) {
         $ch = curl_init();
 
 	$ret[] = '<!-- START dm_manager_get -->';
@@ -60,22 +60,26 @@ function dm_manager_get($fields, $table, $sort_field, $filter) {
             $resp = json_decode($result, true);
 	    $ret[] = '<!-- 200 OK -->';
 	    if (isset($resp['data'])) {
-		$ret[] = '<table class="peopletable">';
-		$ret[] = '<thead><tr>';
-		foreach ($table as $header) {
+		if (count($resp['data'])) {
+ 		  $ret[] = '<table class="peopletable">';
+		  $ret[] = '<thead><tr>';
+		  foreach ($table as $header) {
 			$ret[]='<th>'.$header.'</th>';
-		}
-		$ret[] = '</tr></thead><tbody>';
+		  }
+		  $ret[] = '</tr></thead><tbody>';
 
-		foreach ($resp['data'] as $row) {
+		  foreach ($resp['data'] as $row) {
 			$ret[]='<tr>';
 			foreach ($fields as $field) {
 				$ret[]='<td>'.get_dotted_field($row, $field).'</td>';
 //				$ret[]='<td>'.$row[$field].'</td>';
 			}
 			$ret[]='</tr>';
+		  }
+		  $ret[] = '</tbody></table>';
+		} else {
+		  $ret[] = '<p>' . $no_data_message . '</p>';
 		}
-		$ret[] = '</tbody></table>';
 	    }
         }
 	$ret[] = '<!-- END dm_manager_get -->';
@@ -90,16 +94,21 @@ function dm_manager_shortcode( $atts ) {
         'tableen' => false,
 	'sort_field' => 'person',
 	'filter' => false,
+	'no_data_message' => 'nessuna informazione',
+	'no_data_message_en' => 'there is no data'
     ), $atts));
 
-    if (get_locale() !== 'it_IT' && $tableen) {
-	$table = $tableen;
+    if (get_locale() !== 'it_IT') {
+	if ($tableen) {
+		$table = $tableen;
+	}
+	$no_data_message = $no_data_message_en;
     }
 
     $e_fields = explode(',', $fields);
     $e_fields = array_map(function ($x) { return trim($x); }, $e_fields);
 
-    $ret = dm_manager_get($e_fields, explode(',', $table), $sort_field, $filter);
+    $ret = dm_manager_get($e_fields, explode(',', $table), $sort_field, $filter, $no_data_message);
     return $ret;
 }
 add_shortcode('dm_manager', 'dm_manager_shortcode');
