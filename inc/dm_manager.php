@@ -4,14 +4,18 @@ if ( !defined( 'ABSPATH' ) ) exit;
 
 include 'secrets.php';
 
-function get_dotted_field($obj, $dotted_field) {
+function get_dotted_field($obj, $dotted_field, $date_format) {
 	foreach (explode(".", $dotted_field) as $field) {
 		$obj = $obj[$field];
+	}
+	if (in_array($dotted_field, ['startDate','endDate'])) {
+		$date = date_create($obj);
+		$obj = date_format($date, $date_format);
 	}
 	return $obj;
 }
 
-function dm_manager_get($fields, $table, $sort_field, $filter, $no_data_message) {
+function dm_manager_get($fields, $table, $sort_field, $filter, $no_data_message, $date_format) {
         $ch = curl_init();
 
 	$ret[] = '<!-- START dm_manager_get -->';
@@ -71,7 +75,7 @@ function dm_manager_get($fields, $table, $sort_field, $filter, $no_data_message)
 		  foreach ($resp['data'] as $row) {
 			$ret[]='<tr>';
 			foreach ($fields as $field) {
-				$ret[]='<td>'.get_dotted_field($row, $field).'</td>';
+				$ret[]='<td>'.get_dotted_field($row, $field, $date_format).'</td>';
 //				$ret[]='<td>'.$row[$field].'</td>';
 			}
 			$ret[]='</tr>';
@@ -95,7 +99,8 @@ function dm_manager_shortcode( $atts ) {
 	'sort_field' => 'person',
 	'filter' => false,
 	'no_data_message' => 'nessuna informazione',
-	'no_data_message_en' => 'there is no data'
+	'no_data_message_en' => 'there is no data',
+	'date_format' => 'd.m.Y'
     ), $atts));
 
     if (get_locale() !== 'it_IT') {
@@ -103,12 +108,13 @@ function dm_manager_shortcode( $atts ) {
 		$table = $tableen;
 	}
 	$no_data_message = $no_data_message_en;
+	$date_format = 'M d, Y';
     }
 
     $e_fields = explode(',', $fields);
     $e_fields = array_map(function ($x) { return trim($x); }, $e_fields);
 
-    $ret = dm_manager_get($e_fields, explode(',', $table), $sort_field, $filter, $no_data_message);
+    $ret = dm_manager_get($e_fields, explode(',', $table), $sort_field, $filter, $no_data_message, $date_format);
     return $ret;
 }
 add_shortcode('dm_manager', 'dm_manager_shortcode');
