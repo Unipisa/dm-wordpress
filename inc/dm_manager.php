@@ -171,34 +171,21 @@ function grant_manager_display($data, $date_format, $no_data_message) {
 function grant_manager_shortcode( $atts ) {
     extract(shortcode_atts(array(
 	'model' => 'visit',
-        'fields' => 'cognome',
-        'table' => false,
-        'tableen' => false,
-	'sort_field' => false,
+	'sort_field' => 'startDate',
 	'filter' => false,
 	'no_data_message' => 'nessuna informazione',
 	'no_data_message_en' => 'there is no data',
 	'date_format' => 'd.m.Y'
     ), $atts));
 
-    if ($model == 'visit' && !$sort_field) $sort_field = 'person';
-
-    if ($model == 'grant' && !$sort_field) $sort_field = 'startDate';
-
     if (get_locale() !== 'it_IT') {
-	if ($tableen) {
-		$table = $tableen;
-	}
 	$no_data_message = $no_data_message_en;
 	$date_format = 'M d, Y';
     }
 
-    $e_fields = explode(',', $fields);
-    $e_fields = array_map(function ($x) { return trim($x); }, $e_fields);
-
     $resp = dm_manager_get('grant', $sort_field, $filter);
     $ret[] = $resp['debug'];
-    $ret[] = grant_manager_display($resp['data'], $e_fields, explode(',', $table), $date_format, $no_data_message);
+    $ret[] = grant_manager_display($resp['data'], $date_format, $no_data_message);
     return implode("\n", $ret);
 }
 
