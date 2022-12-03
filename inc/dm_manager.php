@@ -141,8 +141,9 @@ function grant_manager_display($data, $date_format, $no_data_message) {
 		$ret[] = '<a href="' . $grant['webSite'] . '">';
                 $close = '</a>';
 	     }
-             $ret[] = $grant['name'] . '<small class="text-muted">';
-             $ret[] = '(' . $grant['projectType'] .')</small>'.$close.'</h5>';
+             $ret[] = $grant['name'];
+	     if ($grant['projectType'] != '') $ret[] = '<small class="text-muted">(' . $grant['projectType'] .')</small>';
+	     $ret[] = $close.'</h5>';
 	     if ($grant['pi']) {
 		$ret[] = '<p class="mb-0">Principal Investigator: <em>' . $grant['pi']['firstName'] . ' ' .$grant['pi']['lastName'] . '</em></p>';
 	     }
@@ -150,15 +151,14 @@ function grant_manager_display($data, $date_format, $no_data_message) {
 		$ret[] = '<p class="mb-0">Coordinator of the Research Unit: <em>' . $grant['localCoordinator']['firstName'] . ' ' .$grant['localCoordinator']['lastName'] . '</em></p>';
 	     }
 	     if (count($grant['members'])>0) {
-	        $ret[] = '<p class="mb-0">Members of the Research Unit: <em>';
-		$comma = '';
+                $ret[] = '<p class="mb-0">Members of the Research Unit: <em>';
+                $members = [];
                 foreach ($grant['members'] as $member) {
-		    $ret[] = $comma . $member;
-		    $comma = ', ';
-		}
-	        $ret[] = '</em></p>';
+                    $members[] = $member['firstName'] . ' ' . $member['lastName'];
+                }
+                $ret[] = implode(", ", $members) . '</em></p>';
 	     }
-	     $ret[] = json_encode($grant);
+//	     $ret[] = json_encode($grant);
              $ret[] = '</li>';
         }
         $ret[] = '</ul>';
