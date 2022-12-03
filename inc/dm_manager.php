@@ -103,7 +103,7 @@ function visit_manager_shortcode( $atts ) {
         'table' => false,
         'tableen' => false,
 	'sort_field' => 'person',
-	'filter' => false,
+	'filter' => '',
 	'no_data_message' => 'nessuna informazione',
 	'no_data_message_en' => 'there is no data',
 	'date_format' => 'd.m.Y'
@@ -116,6 +116,8 @@ function visit_manager_shortcode( $atts ) {
 	$no_data_message = $no_data_message_en;
 	$date_format = 'M d, Y';
     }
+
+    $filter = 'publish=1,' . $filter;
 
     $e_fields = explode(',', $fields);
     $e_fields = array_map(function ($x) { return trim($x); }, $e_fields);
@@ -172,7 +174,7 @@ function grant_manager_shortcode( $atts ) {
     extract(shortcode_atts(array(
 	'model' => 'visit',
 	'sort_field' => 'startDate',
-	'filter' => false,
+	'filter' => '',
 	'no_data_message' => 'nessuna informazione',
 	'no_data_message_en' => 'there is no data',
 	'date_format' => 'd.m.Y'
