@@ -15,6 +15,41 @@ function get_dotted_field($obj, $dotted_field, $date_format) {
 	return $obj;
 }
 
+function dm_manager_get_by_id($model, $id) {
+    $ch = curl_init();
+
+    // FIXME: Sanitize the ID
+
+    curl_setopt($ch, CURLOPT_URL, DM_MANAGER_URL . $model . '/' . $id);
+    curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
+    // curl_setopt($ch, CURLOPT_CUSTOMREQUEST, 'GET');
+
+    $headers = array();
+    $headers[] = 'Accept: application/json';
+    $headers[] = 'Authorization: Bearer ' . DM_MANAGER_TOKEN;
+    curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
+
+    $result = curl_exec($ch);
+
+    if (curl_errno($ch)) {
+        echo 'Error:' . curl_error($ch);
+    }
+
+    $httpcode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+    curl_close($ch);
+
+    $response = array();
+
+    if ($httpcode == 200) {
+        $response['data'] = json_decode($result, true);
+    }
+    else {
+        $response['data'] = NULL;
+    }
+
+    return $response;
+}
+
 function dm_manager_get($model, $sort_field, $filter) {
         $ch = curl_init();
 
@@ -139,10 +174,8 @@ function grant_manager_display($data, $date_format, $no_data_message) {
              $ret[] = '<li class="mb-2 current' . strtolower($grant['ssd']) . ' ' .$grant['funds']. '">';
 	     $ret[] = '<h5 class="mb-0 font-weight-bold">';
 	     $close = '';
-	     if ($grant['webSite'] != '') {
-		$ret[] = '<a href="' . $grant['webSite'] . '">';
-                $close = '</a>';
-	     }
+             $ret[] = '<a href="/research/grant-details/?grant_id=' . $grant['_id'] . '">';
+             $close = '</a>';
              $ret[] = $grant['name'];
 	     if ($grant['projectType'] != '') $ret[] = '<small class="text-muted">(' . $grant['projectType'] .')</small>';
 	     $ret[] = $close.'</h5>';
@@ -170,6 +203,10 @@ function grant_manager_display($data, $date_format, $no_data_message) {
     return implode("\n", $ret);
 }
 
+function format_person_name($ob) {
+	return $ob['firstName'] . " " . $ob['lastName'] . " (" . $ob['affiliation'] . ")";
+}
+
 function grant_manager_shortcode( $atts ) {
     extract(shortcode_atts(array(
 	'model' => 'visit',
@@ -188,8 +225,63 @@ function grant_manager_shortcode( $atts ) {
     $resp = dm_manager_get('grant', $sort_field, $filter);
     $ret[] = $resp['debug'];
     $ret[] = grant_manager_display($resp['data'], $date_format, $no_data_message);
+
     return implode("\n", $ret);
 }
 
 add_shortcode('grant_manager', 'grant_manager_shortcode');
 
+function grant_manager_details_shortcode( $atts ) {
+    $grant_id = $_GET['grant_id'];
+
+    $dateFormat = 'M d, Y';
+
+    $ret = array();
+
+    $resp = dm_manager_get_by_id('grant', $grant_id);
+    $grant = $resp['data'];
+    if (! $grant) {
+        $ret[] = "Grant not found";
+    }
+    else {
+        $ret[] = "<h3 style='margin-top: 8px;'>" . $grant['name'] . "</h3>";
+        $ret[] = "<p>";
+        $ret[] = "Project Type: " . $grant['projectType'] . "<br>";
+        $ret[] = "Funded by: " . $grant['fundingEntity'] . "<br>";
+        $ret[] = "Period: " . date_format(date_create($grant['startDate']), $dateFormat) . " &ndash; " . date_format(date_create($grant['endDate']), $dateFormat) . "<br>";
+        $ret[] = "Budget: " . $grant['budgetAmount'] . "<br>";
+        if ($grant['webSite']) {
+            $ret[] = "Website: <a href=\"" . $grant['webSite'] . '">' . $grant['webSite'] . "</a>";
+        }
+        $ret[] = "</p>";
+        // $ret[] = var_export($grant, TRUE);
+	$ret[] = "<p class='mb-3'>";
+
+        if ($grant['pi']) {
+            $pi_name = format_person_name($grant['pi']);
+            $ret[] = "Principal Investigator: <a href=''>" . $pi_name . "</a><br>";
+        }
+        if ($grant['localCoordinator'] && $grant['pi']['_id'] != $grant['localCoordinator']['_id']) {
+            $ret[] = "Local coordinator: <a>" . format_person_name($grant['localCoordinator']) . "</a><br>";
+        }
+        $ret[] = "</p>";
+
+        if ($grant['members']) {
+            $ret[] = '<div class="mb-3 wp-block-pb-accordion-item c-accordion__item js-accordion-item" data-initially-open="false" data-click-to-close="true" data-auto-close="false" data-scroll="false">';
+            $ret[] = '<h5 id="at-members" aria-controls="ac-members" class="c-accordion__title js-accordion-controller" role="button" tabindex=0 aria-expanded=false>Participants</h5>';
+            $ret[] = '<div id="ac-members" class="c-accordion__content" hidden="hidden">' . implode(", ", array_map(format_person_name, $grant['members'])) . "</div>";
+            $ret[] = "</div>";
+        }
+
+        if ($grant['description']) {
+            $ret[] = '<div class="wp-block-pb-accordion-item c-accordion__item js-accordion-item" data-initially-open="false" data-click-to-close="true" data-auto-close="false" data-scroll="false">';
+            $ret[] = '<h5 id="at-grant-description" aria-controls="ac-grant-description" class="c-accordion__title js-accordion-controller" role="button" tabindex=0 aria-expanded=false>Description</h5>';
+            $ret[] = '<div id="ac-grant-description" class="c-accordion__content" hidden="hidden">' . $grant['description'] . '</div>';
+            $ret[] = "</div>";
+        }
+    }
+
+    return implode("\n", $ret);
+}
+
+add_shortcode('grant_manager_details', 'grant_manager_details_shortcode');
