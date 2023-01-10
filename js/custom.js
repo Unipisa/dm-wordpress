@@ -1,14 +1,12 @@
 
 function add_sort_capability_to_tables($) {
-  console.log("HI THERE!");
   var headers = document.getElementsByTagName("th");
   for (var i=0; i<headers.length; ++i) {
+
     headers[i].onclick = function() {
-      console.log(this.innerHTML);
+      if (!this.classList.contains('enable-sort')) return;
       var col_index = Array.prototype.indexOf.call(this.parentElement.children, this);
-      console.log(col_index);
       var table = this.closest('table');
-      console.log(table);
       var sorted = false;
       while(!sorted) {
         sorted = true;

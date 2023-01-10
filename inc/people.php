@@ -384,7 +384,15 @@ function peopleshortcode($atts) {
 
 	if($table) {
 		$thead = (array) explode(',', $table);
-		$thead = '<thead><tr><th>'.implode('</th><th>', $thead).'</th></tr></thead>';
+                $fs = (array) explode(',', $fields);
+                for ($i = 0; $i < count($thead); $i++) {
+		  if (trim($fs[$i]) == 'qualifica' || trim($fs[$i]) == 'cognome') {
+                    $thead[$i] = '<th class="enable-sort">'.$thead[$i].'</th>';
+		  } else {
+                    $thead[$i] = '<th>'.$thead[$i].'</th>';
+		  }
+		}
+		$thead = '<thead><tr>'.implode('', $thead).'</tr></thead>';
     	$ret = '<table class="peopletable table table-sm">'.$thead.'<tbody><tr>' . implode("</tr><tr>", array_merge($toptaglist, $ret)) . '</tr></tbody></table>';
     } else {
     	$ret = '<ul class="peoplelist"><li>' . implode("</li><li>\n", $ret) . '</li></ul>';
