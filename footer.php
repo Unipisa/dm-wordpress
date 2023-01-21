@@ -38,6 +38,7 @@ if (!defined('ABSPATH')) {
           'OK', 'Cookie policy', 'https://www.unipi.it/index.php/documenti-ateneo/item/12721-privacy-policy/');
       });
     </script>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 
 </body>
 

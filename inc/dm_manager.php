@@ -185,14 +185,7 @@ function grant_manager_display($data, $date_format, $no_data_message) {
              if ($grant['localCoordinator']) {
 		$ret[] = '<p class="mb-0">Coordinator of the Research Unit: <em>' . $grant['localCoordinator']['firstName'] . ' ' .$grant['localCoordinator']['lastName'] . '</em></p>';
 	     }
-	     if (count($grant['members'])>0) {
-                $ret[] = '<p class="mb-0">Members of the Research Unit: <em>';
-                $members = [];
-                foreach ($grant['members'] as $member) {
-                    $members[] = $member['firstName'] . ' ' . $member['lastName'];
-                }
-                $ret[] = implode(", ", $members) . '</em></p>';
-	     }
+	     $ret[] = '<p>Project period: <em>' . get_dotted_field($grant, 'startDate', $date_format) . ' &ndash; ' . get_dotted_field($grant, 'endDate', $date_format) . '</em></p>';
 //	     $ret[] = json_encode($grant);
              $ret[] = '</li>';
         }

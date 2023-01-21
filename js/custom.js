@@ -1,3 +1,11 @@
+// Compile Markdown for selected entries
+function compile_markdown() {
+  const grant_description = document.getElementById('ac-grant-description')
+  if (grant_description) {
+    grant_description.innerHTML = marked.parse(grant_description.innerHTML)
+  }
+}
+
 
 function add_sort_capability_to_tables($) {
   var headers = document.getElementsByTagName("th");
@@ -59,6 +67,7 @@ function add_sort_capability_to_tables($) {
 		}
 
 	      add_sort_capability_to_tables($);
+	      compile_markdown();
 	} );
 
 })( jQuery );
