@@ -119,7 +119,13 @@ function visit_manager_display($data, $fields, $table, $date_format, $no_data_me
 		  foreach ($data as $row) {
 			$ret[]='<tr>';
 			foreach ($fields as $field) {
-				$ret[]='<td>'.get_dotted_field($row, $field, $date_format).'</td>';
+				$val = get_dotted_field($row, $field, $date_format);
+				if ($field == 'roomAssignment.room.building') {
+					if ($val == 'A') $val = 'Edificio A';
+					if ($val == 'B') $val = 'Edificio B';
+					if ($val == 'X') $val = 'Ex-Albergo';
+				}
+				$ret[]='<td>'.$val.'</td>';
 			}
 			$ret[]='</tr>';
 		  }
