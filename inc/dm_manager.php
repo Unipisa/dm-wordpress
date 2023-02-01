@@ -284,3 +284,192 @@ function grant_manager_details_shortcode( $atts ) {
 }
 
 add_shortcode('grant_manager_details', 'grant_manager_details_shortcode');
+
+function dm_manager_get_role_label($role, $en, $genre = 'm') {
+	$ret = $role;
+
+	$roles = [
+		'PO' => ['Professore Ordinario', 'Professoressa Ordinaria', 'Full Professor', 'Full Professor'],
+		'PA' => ['Professore Associato', 'Professoressa Associata', 'Associate Professor', 'Associate Professor'],
+		'RTDb' => ['Ricercatore a tempo determinato senior', 'Ricercatrice a tempo determinato senior', 'Tenure-track Assistant Professor', 'Tenure-track Assistant Professor'],
+		'RTDa' => ['Ricercatore a tempo determinato junior', 'Ricercatrice a tempo determinato junior', 'Non-Tenure-Track Assistant Professor', 'Non-Tenure-Track Assistant Professor'],
+		'RIC' => ['Ricercatore a tempo indeterminato', 'Ricercatrice a tempo indeterminato', 'Tenured Assistant Professor', 'Tenured Assistant Professor'],
+		'Assegnista' => ['Assegnista', 'Assegnista', 'Postdoctoral Fellow', 'Postdoctoral Fellow'],
+		'Dottorando' => ['Dottorando', 'Dottoranda', 'Ph.D. Student', 'Ph.D. Student'],
+		'PTA' => ['Personale Tecnico Amministrativo', 'Personale Tecnico Amministrativo', 'Administrative Staff', 'Administrative Staff'],
+		'Professore Emerito' => ['Professore Emerito', 'Professore Emerito', 'Emeritus Professor', 'Emeritus Professor'],
+		'Collaboratore e Docente Esterno' => ['Collaboratore e Docente Esterno', 'Collaboratrice e Docente Esterna', 'External Collaborator', 'External Collaborator'],
+		'Studente' => ['Studente', 'Studentessa', 'Student', 'Student'],
+	];
+
+	if (isset($roles[$role])) {
+		$i = 0;
+
+		if ($genre == 'f') {
+			$i++;
+		}
+
+		if ($en) {
+			$i += 2;
+		}
+
+		$ret = $roles[$role][$i];
+	}
+
+	return $ret;
+}
+
+function dm_manager_person_details_shortcode( $atts ) {
+  // If true, then the language is set to English
+  $en = get_locale() !== 'it_IT';
+
+  $person_id = $_GET['person_id'];
+
+  if (! $person_id) {
+    return "Persona non trovata";
+  }
+
+  $res = dm_manager_get_by_id('person', $person_id);
+  $p = $res['data'];
+  $res = dm_manager_get('staff', '-endDate', 'person=' . $person_id);
+  $s = $res['data'];
+
+  if (! $p) {
+    return "Persona non trovata";
+  }
+
+  $out = [];
+
+  // var_dump($p);
+
+  $imageurl = $p['photoUrl']; 
+
+  if (! $imageurl) {
+    $imageurl = 'https://i0.wp.com/www.dm.unipi.it/wp-content/uploads/2022/07/No-Image-Placeholder.svg_.png?resize=280%2C280&ssl=1';
+  }
+  
+  // 'https://i0.wp.com/www.dm.unipi.it/wp-content/uploads/2022/04/20220427_44.jpg?resize=280%2C280&amp;ssl=1';
+
+  // Generate the qualification string
+  $qualification = implode(", ", array_map(function ($s) use ($en, $p) { 
+    $gender = ($p['gender'] == 'Uomo') ? 'm' : 'f';
+    return dm_manager_get_role_label($s['qualification'], $en, $gender); 
+  }, $s));
+
+  // Gruppo di ricerca
+  $research_group = [];
+  foreach ($s as $ss) {
+    switch ($ss['SSD']) {
+      case 'MAT/01':
+        $research_group[] = $en ? 'Mathematical Logic' : 'Logica Matematica';
+        break;
+      case 'MAT/02':
+        $research_group[] = 'Algebra';
+        break;
+      case 'MAT/03':
+        $research_group[] = $en ? 'Geometry' : 'Geometria';
+        break;
+      case 'MAT/04':
+        $research_group[] = $en ? 'Mathematics Education and History of Mathematics' : 'Didattica della Matematica e Storia della Matematica';
+        break;
+      case 'MAT/05':
+        $research_group[] = $en ? 'Mathematical Analysis' : 'Analisi Matematica';
+        break;
+      case 'MAT/06':
+        $research_group[] = $en ? 'Probability' : 'Probabilità';
+        break;
+      case 'MAT/07':
+        $research_group[] = $en ? 'Mathematical physics' : 'Fisica Matematica';
+        break;
+      case 'MAT/08':
+        $research_group[] = $en ? 'Numerical Analysis' : 'Analisi Numerica';
+        break;
+      default:
+        $research_group[] = $p['SSD'];
+        break;
+    }
+  }
+  $research_group = implode(", ", $research_group);
+
+  $email = $p['email'];
+  $phone = $p['phone'];
+  $web = $p['personalPage'];
+
+  // Room
+  try {
+    $room = $s[0]['roomAssignments'][0]['room'];
+    $address  = ($room['building'] == 'X') ? 'Via Buonarroti, 1/c, ' : 'L.go B. Pontecorvo, 5, ';
+    $address .= '56127 Pisa (PI), Italy.';
+  }
+  catch (Exception $e) {
+    $room = null;
+  }
+
+  switch ($room['floor']) {
+    case 0:
+      $floor_desc = $en ? 'Ground floor' : 'Piano terra';
+      break;
+    case 1:
+      $floor_desc = $en ? 'First floor' : 'Primo piano';
+      break;
+    case 2:
+      $floor_desc = $en ? 'Second floor' : 'Secondo piano';
+      break;
+    case 3:
+      $floor_desc = $en ? 'Third floor' : 'Terzo piano';
+      break;
+    default:
+      $floor_desc = "";
+  }
+
+  $address_desc =  ($en ? 'Building ' : 'Edificio ') . $room['building'] . ', ' . $floor_desc . ', ' 
+    . ($en ? 'Room ' : 'Stanza ') .  $room['number'] . ', <br>'
+    . $address;
+
+  if ($room) {
+    $room_desc = <<<END
+        <div class="d-flex justify-left">
+          <div>
+            <i class="fas fa-address-card mr-2"></i>
+          </div>
+          <div>
+            {$address_desc}
+          </div>
+        </div>
+        <p></p>
+    END;
+  }
+
+  $research_group_label = $en ? 'Research group' : 'Gruppo di ricerca';
+
+  return <<<END
+  <div class="entry-content box clearfix">
+    <div class="d-flex flex-wrap align-middle">
+      <div class="mr-4 mb-4">
+        <img width="280" height="280" src="{$imageurl}" class="rounded img-fluid" alt="" decoding="async">
+      </div>
+      <div class="ml-4">
+        <div class="h4">{$qualification}</div>
+        <p>
+          <strong>{$research_group_label}: </strong>{$research_group}
+        </p>
+        <p></p>
+      {$room_desc}
+      <p>
+        <i class="fas fa-at mr-2"></i><a href="mailto:{$email}">{$email}</a>
+      </p>
+      <p>
+        <i class="fas fa-phone mr-2"></i><a href="tel:{$phone}">{$phone}</a>
+      </p>
+      <p>
+        <i class="fas fa-link mr-2"></i><a href="{$web}">{$web}</a>
+      </p>
+      </div>
+    </div>
+  </div>
+  END;
+}
+
+add_shortcode('dm_manager_person_details', 'dm_manager_person_details_shortcode');
+
+
