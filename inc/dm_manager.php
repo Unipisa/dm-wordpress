@@ -3,6 +3,7 @@
 if ( !defined( 'ABSPATH' ) ) exit;
 
 include 'secrets.php';
+include_once('translations.php');
 
 function get_dotted_field($obj, $dotted_field, $date_format) {
 	foreach (explode(".", $dotted_field) as $field) {
@@ -129,11 +130,11 @@ function people_manager_display($data, $fields, $table, $date_format, $no_data_m
 					if ($val == 'A') $val = 'Edificio A';
 					if ($val == 'B') $val = 'Edificio B';
 					if ($val == 'X') $val = 'Ex-Albergo';
-				} else if ($field == 'person.email') {
+				} else if ($field == 'person.email' && $val!='') {
 					$val = '<a href="mailto:' . $val . '">'
 					. '<i class="far fa-envelope fa-fw"></i><span class="d-none d-lg-inline">'
 					. $val . '</span></a>';
-				} else if ($field == 'person.phone') {
+				} else if ($field == 'person.phone' && $val!='') {
 					$val = '<a href="tel:' . $val . '">'
 					. '<i class="fas fa-phone-alt fa-fw"></i> <span class="d-none d-lg-inline">'
 					. $val.'</span></a>';
@@ -334,44 +335,7 @@ function grant_manager_details_shortcode( $atts ) {
 
 add_shortcode('grant_manager_details', 'grant_manager_details_shortcode');
 
-function dm_manager_get_role_label($role, $en, $genre = 'm') {
-	$ret = $role;
-
-	$roles = [
-		'PO' => ['Professore Ordinario', 'Professoressa Ordinaria', 'Full Professor', 'Full Professor'],
-		'PA' => ['Professore Associato', 'Professoressa Associata', 'Associate Professor', 'Associate Professor'],
-		'RTDb' => ['Ricercatore a tempo determinato senior', 'Ricercatrice a tempo determinato senior', 'Tenure-track Assistant Professor', 'Tenure-track Assistant Professor'],
-		'RTDa' => ['Ricercatore a tempo determinato junior', 'Ricercatrice a tempo determinato junior', 'Non-Tenure-Track Assistant Professor', 'Non-Tenure-Track Assistant Professor'],
-		'RIC' => ['Ricercatore a tempo indeterminato', 'Ricercatrice a tempo indeterminato', 'Tenured Assistant Professor', 'Tenured Assistant Professor'],
-		'Assegnista' => ['Assegnista', 'Assegnista', 'Postdoctoral Fellow', 'Postdoctoral Fellow'],
-		'Dottorando' => ['Dottorando', 'Dottoranda', 'Ph.D. Student', 'Ph.D. Student'],
-		'PTA' => ['Personale Tecnico Amministrativo', 'Personale Tecnico Amministrativo', 'Administrative Staff', 'Administrative Staff'],
-		'Professore Emerito' => ['Professore Emerito', 'Professore Emerito', 'Emeritus Professor', 'Emeritus Professor'],
-		'Collaboratore e Docente Esterno' => ['Collaboratore e Docente Esterno', 'Collaboratrice e Docente Esterna', 'External Collaborator', 'External Collaborator'],
-		'Collaboratore' => ['Collaboratore', 'Collaboratrice', 'Collaborator', 'Collaborator'], 
-		'Docente Esterno' => ['Docente Esterno', 'Docente Esterna', 'External Professor', 'External Professor'],
-		'Studente' => ['Studente', 'Studentessa', 'Student', 'Student'],
-	];
-
-	if (isset($roles[$role])) {
-		$i = 0;
-
-		if ($genre == 'f') {
-			$i++;
-		}
-
-		if ($en) {
-			$i += 2;
-		}
-
-		$ret = $roles[$role][$i];
-	}
-
-	return $ret;
-}
-
 function dm_manager_person_details_shortcode( $atts ) {
-  // If true, then the language is set to English
   $en = get_locale() !== 'it_IT';
 
   $person_id = $_GET['person_id'];
@@ -389,17 +353,11 @@ function dm_manager_person_details_shortcode( $atts ) {
     return "Persona non trovata";
   }
 
-  $out = [];
-
-  // var_dump($p);
-
   $imageurl = $p['photoUrl']; 
 
   if (! $imageurl) {
     $imageurl = 'https://i0.wp.com/www.dm.unipi.it/wp-content/uploads/2022/07/No-Image-Placeholder.svg_.png?resize=280%2C280&ssl=1';
   }
-
-  // 'https://i0.wp.com/www.dm.unipi.it/wp-content/uploads/2022/04/20220427_44.jpg?resize=280%2C280&amp;ssl=1';
 
   // Generate the qualification string
   $qualification = implode(", ", array_map(function ($s) use ($en, $p) { 
@@ -408,39 +366,9 @@ function dm_manager_person_details_shortcode( $atts ) {
   }, $s));
 
   // Gruppo di ricerca
-  $research_group = [];
-  foreach ($s as $ss) {
-    switch ($ss['SSD']) {
-      case 'MAT/01':
-        $research_group[] = $en ? 'Mathematical Logic' : 'Logica Matematica';
-        break;
-      case 'MAT/02':
-        $research_group[] = 'Algebra';
-        break;
-      case 'MAT/03':
-        $research_group[] = $en ? 'Geometry' : 'Geometria';
-        break;
-      case 'MAT/04':
-        $research_group[] = $en ? 'Mathematics Education and History of Mathematics' : 'Didattica della Matematica e Storia della Matematica';
-        break;
-      case 'MAT/05':
-        $research_group[] = $en ? 'Mathematical Analysis' : 'Analisi Matematica';
-        break;
-      case 'MAT/06':
-        $research_group[] = $en ? 'Probability' : 'Probabilità';
-        break;
-      case 'MAT/07':
-        $research_group[] = $en ? 'Mathematical physics' : 'Fisica Matematica';
-        break;
-      case 'MAT/08':
-        $research_group[] = $en ? 'Numerical Analysis' : 'Analisi Numerica';
-        break;
-      default:
-        $research_group[] = $p['SSD'];
-        break;
-    }
-  }
-  $research_group = implode(", ", $research_group);
+  $research_group = implode(", ", array_map(function ($ss) use ($en) { 
+    return dm_manager_get_research_group_label($ss['SSD'], $en); 
+  }, $s));
 
   $email = $p['email'];
   $phone = $p['phone'];
@@ -451,31 +379,15 @@ function dm_manager_person_details_shortcode( $atts ) {
     $room = $s[0]['roomAssignments'][0]['room'];
     $address  = ($room['building'] == 'X') ? 'Via Buonarroti, 1/c, ' : 'L.go B. Pontecorvo, 5, ';
     $address .= '56127 Pisa (PI), Italy.';
+    $floor_desc = dm_manager_floor_label($room['floor'], $en);
+
+    $address_desc =  ($en ? 'Building ' : 'Edificio ') . $room['building'] . ', ' . $floor_desc . ', ' 
+      . ($en ? 'Room ' : 'Stanza ') .  $room['number'] . ', <br>'
+      . $address;
   }
   catch (Exception $e) {
     $room = null;
   }
-
-  switch ($room['floor']) {
-    case 0:
-      $floor_desc = $en ? 'Ground floor' : 'Piano terra';
-      break;
-    case 1:
-      $floor_desc = $en ? 'First floor' : 'Primo piano';
-      break;
-    case 2:
-      $floor_desc = $en ? 'Second floor' : 'Secondo piano';
-      break;
-    case 3:
-      $floor_desc = $en ? 'Third floor' : 'Terzo piano';
-      break;
-    default:
-      $floor_desc = "";
-  }
-
-  $address_desc =  ($en ? 'Building ' : 'Edificio ') . $room['building'] . ', ' . $floor_desc . ', ' 
-    . ($en ? 'Room ' : 'Stanza ') .  $room['number'] . ', <br>'
-    . $address;
 
   if ($room) {
     $room_desc = <<<END
@@ -493,6 +405,86 @@ function dm_manager_person_details_shortcode( $atts ) {
 
   $research_group_label = $en ? 'Research group' : 'Gruppo di ricerca';
 
+  // FIXME: Per il momento non abbiamo l'ID nel database, ne stiamo usando uno di prova.
+  $unipi_id = ltrim($s[0]['matricola'], 'a');
+  if ($unipi_id) {
+    $arpi_data = do_shortcode('[arpi id="' . $unipi_id . '"]');
+    $courses_data = do_shortcode('[persona id="' . $unipi_id . '"]');
+
+    $pub_links = [];
+    if ($p['google_scholar']) { 
+      $pub_links[] = [ 
+        "label" => "Google Scholar", 
+        "url" => "https://scholar.google.com/citations?user=" . $p['google_scholar']
+      ];
+    }
+    if ($p['orcid']) {
+      $pub_links[] = [
+        "label" => "ORCID", 
+        "url" => 'https://orcid.org/' . $p['orcid']
+      ];
+    }
+    if ($p['arxiv_orcid']) {
+      $pub_links[] = [
+        "label" => "ArXiV", 
+        "url" => "https://arxiv.org/a/" . $p['orcid']
+      ];
+    }
+    if ($p['mathscinet']) {
+      $pub_links[] = [ 
+        "label" => "MathSciNet", 
+        "url" => 'https://mathscinet.ams.org/mathscinet/MRAuthorID/' . $p['mathscinet']
+      ];
+    }
+
+    $pub_links_html = implode(", \n", array_map(function ($x) {
+      return <<<END
+      <a href={$x['url']} target="_blank">{$x['label']}</a>
+      END;
+    }, $pub_links));
+
+    $pub_title = $en ? "Recent publications" : "Pubblicazioni recenti";
+    $see_all = $en ? "See all the publications at:" : "Vedi tutte le pubblicazioni su:";
+
+    $publication_accordion = <<<END
+    <div class="wp-block-pb-accordion-item c-accordion__item js-accordion-item" data-initially-open="false" 
+    data-click-to-close="true" data-auto-close="true" data-scroll="false" data-scroll-offset="0">
+      <h4 id="at-1001" class="c-accordion__title js-accordion-controller" role="button" tabindex="0" aria-controls="ac-1001" aria-expanded="true">
+        {$pub_title}
+      </h4>
+      <div id="ac-1001" class="c-accordion__content" style="display: block;">
+        {$arpi_data}
+        {$see_all} {$pub_links_html}
+      </div>
+    </div>  
+    END;
+  }
+
+  $research_group_text = $research_group ? <<<END
+  <p>
+    <strong>{$research_group_label}: </strong>{$research_group}
+  </p>
+  <p></p>
+  END : "";
+  
+  $email_text = $email ? <<<END
+  <p>
+    <i class="fas fa-at mr-2"></i><a href="mailto:{$email}">{$email}</a>
+  </p>
+  END : "";
+
+  $phone_text = $phone ? <<<END
+  <p>
+    <i class="fas fa-phone mr-2"></i><a href="tel:{$phone}">{$phone}</a>
+  </p>
+  END : "";
+
+  $web_text = $web ? <<<END
+  <p>
+    <i class="fas fa-link mr-2"></i><a href="{$web}">{$web}</a>
+  </p>
+  END : "";
+
   return <<<END
   <div class="entry-content box clearfix">
     <div class="d-flex flex-wrap align-middle">
@@ -501,23 +493,16 @@ function dm_manager_person_details_shortcode( $atts ) {
       </div>
       <div class="ml-4">
         <div class="h4">{$qualification}</div>
-        <p>
-          <strong>{$research_group_label}: </strong>{$research_group}
-        </p>
-        <p></p>
+      {$research_group_text}
       {$room_desc}
-      <p>
-        <i class="fas fa-at mr-2"></i><a href="mailto:{$email}">{$email}</a>
-      </p>
-      <p>
-        <i class="fas fa-phone mr-2"></i><a href="tel:{$phone}">{$phone}</a>
-      </p>
-      <p>
-        <i class="fas fa-link mr-2"></i><a href="{$web}">{$web}</a>
-      </p>
+      {$email_text}
+      {$phone_text}
+      {$web_text}
       </div>
     </div>
   </div>
+  {$publication_accordion}
+  {$courses_data}
   END;
 }
 
