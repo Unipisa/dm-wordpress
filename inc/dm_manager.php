@@ -62,14 +62,14 @@ function dm_manager_get($model, $sort_field, $filter) {
 	  $key = $key_val[0];
 	  $val = $key_val[1];
           if ($key == 'current') {
-                $query[] = 'startDate__lt=today';
-                $query[] = 'endDate__gt=today';
+                $query[] = 'startDate__lt_or_null=today';
+                $query[] = 'endDate__gt_or_null=today';
           } elseif ($key == 'past') {
-                $query[] = 'endDate__lt=today';
+                $query[] = 'endDate__lt_or_null=today';
 	  } elseif ($key == 'perspective') {
-                $query[] = 'startDate__gt=today';
+                $query[] = 'startDate__gt_or_null=today';
           } elseif ($key == 'year') {
-		$query[] = 'startDate__lte=' . $val . '-12-31&endDate__gte=' . $val . '-01-01';
+		$query[] = 'startDate__lte_or_null=' . $val . '-12-31&endDate__gte_or_null=' . $val . '-01-01';
           } else {
 		$query[] = $key . '=' . $val;
 	  }
@@ -107,13 +107,17 @@ function dm_manager_get($model, $sort_field, $filter) {
         return $resp;
     }
 
-function visit_manager_display($data, $fields, $table, $date_format, $no_data_message) {
+function people_manager_display($data, $fields, $table, $date_format, $no_data_message) {
     $ret[] = '<!-- 200 OK -->';
     if (count($data)) {
  		  $ret[] = '<table class="peopletable">';
 		  $ret[] = '<thead><tr>';
-		  foreach ($table as $header) {
-			$ret[]='<th>'.$header.'</th>';
+		  for ($i = 0 ; $i < count($fields) ; $i++) {
+			$class='';
+			if ($fields[$i] == 'person.lastName' || $fields[$i] == 'qualification') {
+			  $class=' class="enable-sort"';
+			}
+			$ret[]='<th'.$class.'>'.$table[$i].'</th>';
 		  }
 		  $ret[] = '</tr></thead><tbody>';
 
@@ -125,6 +129,17 @@ function visit_manager_display($data, $fields, $table, $date_format, $no_data_me
 					if ($val == 'A') $val = 'Edificio A';
 					if ($val == 'B') $val = 'Edificio B';
 					if ($val == 'X') $val = 'Ex-Albergo';
+				} else if ($field == 'person.email') {
+					$val = '<a href="mailto:' . $val . '">'
+					. '<i class="far fa-envelope fa-fw"></i><span class="d-none d-lg-inline">'
+					. $val . '</span></a>';
+				} else if ($field == 'person.phone') {
+					$val = '<a href="tel:' . $val . '">'
+					. '<i class="fas fa-phone-alt fa-fw"></i> <span class="d-none d-lg-inline">'
+					. $val.'</span></a>';
+				} else if ($field == 'person._id') {
+					$val = '<a href="/scheda-personale/?person_id=' . $val . '">'
+					. '<i class="fas fa-id-card fa-fw"></i></a>';
 				}
 				$ret[]='<td>'.$val.'</td>';
 			}
@@ -166,7 +181,7 @@ function visit_manager_shortcode( $atts ) {
 
     $resp = dm_manager_get('visit', $sort_field, $filter);
     $ret[] = $resp['debug'];
-    $ret[] = visit_manager_display($resp['data'], $e_fields, explode(',', $table), $date_format, $no_data_message);
+    $ret[] = people_manager_display($resp['data'], $e_fields, explode(',', $table), $date_format, $no_data_message);
     return implode("\n", $ret);
 }
 
@@ -197,10 +212,10 @@ function staff_manager_shortcode( $atts ) {
 
     $e_fields = explode(',', $fields);
     $e_fields = array_map(function ($x) { return trim($x); }, $e_fields);
-
+    $filter = implode(',', array_merge(explode(',', $filter),['current']));
     $resp = dm_manager_get('staff', $sort_field, $filter);
     $ret[] = $resp['debug'];
-    $ret[] = visit_manager_display($resp['data'], $e_fields, explode(',', $table), $date_format, $no_data_message);
+    $ret[] = people_manager_display($resp['data'], $e_fields, explode(',', $table), $date_format, $no_data_message);
     return implode("\n", $ret);
 }
 
