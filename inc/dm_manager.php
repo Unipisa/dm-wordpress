@@ -75,9 +75,10 @@ function dm_manager_get($model, $sort_field, $filter) {
 	  }
 	}
 
-	$ret[] = '<!-- QUERY_STRING ' . implode('&', $query);
+	$url = DM_MANAGER_URL . $model . '?' . implode('&', $query);
+	$ret[] = '<!-- QUERY_STRING ' . $url . ' -->';
 
-        curl_setopt($ch, CURLOPT_URL, DM_MANAGER_URL . $model . '?' . implode('&', $query));
+        curl_setopt($ch, CURLOPT_URL, $url);
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
         curl_setopt($ch, CURLOPT_CUSTOMREQUEST, 'GET');
 
@@ -158,7 +159,7 @@ function visit_manager_shortcode( $atts ) {
 	$date_format = 'M d, Y';
     }
 
-    $filter = 'publish=1,' . $filter;
+    // $filter = 'publish=1,' . $filter;
 
     $e_fields = explode(',', $fields);
     $e_fields = array_map(function ($x) { return trim($x); }, $e_fields);
@@ -171,6 +172,39 @@ function visit_manager_shortcode( $atts ) {
 
 add_shortcode('dm_manager', 'visit_manager_shortcode');
 add_shortcode('visit_manager', 'visit_manager_shortcode');
+
+/* Shortcode */
+function staff_manager_shortcode( $atts ) {
+    extract(shortcode_atts(array(
+	'model' => 'visit',
+        'fields' => 'cognome',
+        'table' => false,
+        'tableen' => false,
+	'sort_field' => 'person',
+	'filter' => '',
+	'no_data_message' => 'nessuna informazione',
+	'no_data_message_en' => 'there is no data',
+	'date_format' => 'd.m.Y'
+    ), $atts));
+
+    if (get_locale() !== 'it_IT') {
+	if ($tableen) {
+		$table = $tableen;
+	}
+	$no_data_message = $no_data_message_en;
+	$date_format = 'M d, Y';
+    }
+
+    $e_fields = explode(',', $fields);
+    $e_fields = array_map(function ($x) { return trim($x); }, $e_fields);
+
+    $resp = dm_manager_get('staff', $sort_field, $filter);
+    $ret[] = $resp['debug'];
+    $ret[] = visit_manager_display($resp['data'], $e_fields, explode(',', $table), $date_format, $no_data_message);
+    return implode("\n", $ret);
+}
+
+add_shortcode('staff_manager', 'staff_manager_shortcode');
 
 function grant_manager_display($data, $date_format, $no_data_message) {
     $ret[] = '<!-- 200 OK -->';
@@ -299,6 +333,8 @@ function dm_manager_get_role_label($role, $en, $genre = 'm') {
 		'PTA' => ['Personale Tecnico Amministrativo', 'Personale Tecnico Amministrativo', 'Administrative Staff', 'Administrative Staff'],
 		'Professore Emerito' => ['Professore Emerito', 'Professore Emerito', 'Emeritus Professor', 'Emeritus Professor'],
 		'Collaboratore e Docente Esterno' => ['Collaboratore e Docente Esterno', 'Collaboratrice e Docente Esterna', 'External Collaborator', 'External Collaborator'],
+		'Collaboratore' => ['Collaboratore', 'Collaboratrice', 'Collaborator', 'Collaborator'], 
+		'Docente Esterno' => ['Docente Esterno', 'Docente Esterna', 'External Professor', 'External Professor'],
 		'Studente' => ['Studente', 'Studentessa', 'Student', 'Student'],
 	];
 
@@ -347,7 +383,7 @@ function dm_manager_person_details_shortcode( $atts ) {
   if (! $imageurl) {
     $imageurl = 'https://i0.wp.com/www.dm.unipi.it/wp-content/uploads/2022/07/No-Image-Placeholder.svg_.png?resize=280%2C280&ssl=1';
   }
-  
+
   // 'https://i0.wp.com/www.dm.unipi.it/wp-content/uploads/2022/04/20220427_44.jpg?resize=280%2C280&amp;ssl=1';
 
   // Generate the qualification string
