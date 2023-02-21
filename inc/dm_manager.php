@@ -9,7 +9,7 @@ function get_dotted_field($obj, $dotted_field, $date_format) {
 	foreach (explode(".", $dotted_field) as $field) {
 		$obj = $obj[$field];
 	}
-	if (in_array($dotted_field, ['startDate','endDate'])) {
+	if (in_array($dotted_field, ['startDate','endDate','date'])) {
 		$date = date_create($obj);
 		$obj = date_format($date, $date_format);
 	}
@@ -190,21 +190,40 @@ function visit_manager_shortcode( $atts ) {
 add_shortcode('dm_manager', 'visit_manager_shortcode');
 add_shortcode('visit_manager', 'visit_manager_shortcode');
 
-function thesis_manager_display($data, $fields, $table, $date_format, $no_data_message) {
+function thesis_manager_display($data, $fields, $table, $date_format, $no_data_message, $list_mode) {
     $ret[] = '<!-- 200 OK -->';
     if (count($data)) {
- 		  $ret[] = '<table>';
-		  $ret[] = '<thead><tr>';
-		  for ($i = 0 ; $i < count($fields) ; $i++) {
+		  if ($list_mode) {
+                    $ret[] = '<ul>';
+		  } else {
+	  	    $ret[] = '<table>';
+		    $ret[] = '<thead><tr>';
+  		    for ($i = 0 ; $i < count($fields) ; $i++) {
 			$class='';
 			if ($fields[$i] == 'person.lastName' || $fields[$i] == 'qualification') {
 			  $class=' class="enable-sort"';
 			}
 			$ret[]='<th'.$class.'>'.$table[$i].'</th>';
+		    }
+		    $ret[] = '</tr></thead><tbody>';
 		  }
-		  $ret[] = '</tr></thead><tbody>';
 
 		  foreach ($data as $row) {
+                    if ($list_mode) {
+			$ret[] = '<li>';
+                        $ret[] = $row['person']['firstName'];
+			$ret[] = $row['person']['lastName'];
+			if ($row['affiliation']) $ret[] = '(' . $row['affiliation'] . ')';
+			if ($row['title']) $ret[] = '"' . $row['title'] . '"';
+			if ($row['advisors']) {
+			  $ret[] = 'supervised by';
+			  foreach($row['advisors'] as $key => $advisor) {
+			    if ($key !== array_key_first($row['advisors'])) $ret[] = 'and';
+			    $ret[] = $advisor['firstName'] . '  ' . $advisor['lastName'];
+			  }
+			}
+			$ret[] = '</li>';
+		    } else {
 			$ret[]='<tr>';
 			foreach ($fields as $field) {
 				$val = get_dotted_field($row, $field, $date_format);
@@ -228,8 +247,13 @@ function thesis_manager_display($data, $fields, $table, $date_format, $no_data_m
 				$ret[]='<td>'.$val.'</td>';
 			}
 			$ret[]='</tr>';
+		    }
 		  }
-		  $ret[] = '</tbody></table>';
+		  if ($list_mode) {
+		    $ret[] = '</ul>';
+		  } else {
+	   	    $ret[] = '</tbody></table>';
+		  }
     } else {
 		  $ret[] = '<p>' . $no_data_message . '</p>';
     }
@@ -247,7 +271,8 @@ function thesis_manager_shortcode( $atts ) {
 	'filter' => '',
 	'no_data_message' => 'nessuna informazione',
 	'no_data_message_en' => 'there is no data',
-	'date_format' => 'd.m.Y'
+	'date_format' => 'd.m.Y',
+	'list_mode' => false
     ), $atts));
 
     if (get_locale() !== 'it_IT') {
@@ -265,7 +290,7 @@ function thesis_manager_shortcode( $atts ) {
 
     $resp = dm_manager_get('thesis', $sort_field, $filter);
     $ret[] = $resp['debug'];
-    $ret[] = thesis_manager_display($resp['data'], $e_fields, explode(',', $table), $date_format, $no_data_message);
+    $ret[] = thesis_manager_display($resp['data'], $e_fields, explode(',', $table), $date_format, $no_data_message, $list_mode);
     return implode("\n", $ret);
 }
 
