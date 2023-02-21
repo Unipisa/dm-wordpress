@@ -70,6 +70,8 @@ function dm_manager_get($model, $sort_field, $filter) {
                 $query[] = 'startDate__gt_or_null=today';
           } elseif ($key == 'year') {
 		$query[] = 'startDate__lte_or_null=' . $val . '-12-31&endDate__gte_or_null=' . $val . '-01-01';
+          } elseif ($key == 'dateyear') {
+		$query[] = 'date__lte=' . $val . '-12-31&date__gte=' . $val . '-01-01';
           } else {
 		$query[] = $key . '=' . $val;
 	  }
@@ -187,6 +189,87 @@ function visit_manager_shortcode( $atts ) {
 
 add_shortcode('dm_manager', 'visit_manager_shortcode');
 add_shortcode('visit_manager', 'visit_manager_shortcode');
+
+function thesis_manager_display($data, $fields, $table, $date_format, $no_data_message) {
+    $ret[] = '<!-- 200 OK -->';
+    if (count($data)) {
+ 		  $ret[] = '<table>';
+		  $ret[] = '<thead><tr>';
+		  for ($i = 0 ; $i < count($fields) ; $i++) {
+			$class='';
+			if ($fields[$i] == 'person.lastName' || $fields[$i] == 'qualification') {
+			  $class=' class="enable-sort"';
+			}
+			$ret[]='<th'.$class.'>'.$table[$i].'</th>';
+		  }
+		  $ret[] = '</tr></thead><tbody>';
+
+		  foreach ($data as $row) {
+			$ret[]='<tr>';
+			foreach ($fields as $field) {
+				$val = get_dotted_field($row, $field, $date_format);
+				if ($field == 'person.genealogyId') {
+					if (!empty($val)) {
+						$val = '<a href="https://www.genealogy.math.ndsu.nodak.edu/id.php?id=' . $val . 
+							'"><span class="fas fa-id-card fa-fw" aria-hidden="true"></span></a>';
+					}
+				} else if ($field == 'person.email' && $val!='') {
+					$val = '<a href="mailto:' . $val . '">'
+					. '<i class="far fa-envelope fa-fw"></i><span class="d-none d-lg-inline">'
+					. $val . '</span></a>';
+				} else if ($field == 'person.phone' && $val!='') {
+					$val = '<a href="tel:' . $val . '">'
+					. '<i class="fas fa-phone-alt fa-fw"></i> <span class="d-none d-lg-inline">'
+					. $val.'</span></a>';
+				} else if ($field == 'person._id') {
+					$val = '<a href="/scheda-personale/?person_id=' . $val . '">'
+					. '<i class="fas fa-id-card fa-fw"></i></a>';
+				}
+				$ret[]='<td>'.$val.'</td>';
+			}
+			$ret[]='</tr>';
+		  }
+		  $ret[] = '</tbody></table>';
+    } else {
+		  $ret[] = '<p>' . $no_data_message . '</p>';
+    }
+    return implode("\n", $ret);
+}
+
+/* Shortcode */
+function thesis_manager_shortcode( $atts ) {
+    extract(shortcode_atts(array(
+	'model' => 'thesis',
+        'fields' => 'person.firstName,person.lastName,person.genealogyId',
+        'table' => false,
+        'tableen' => false,
+	'sort_field' => 'person',
+	'filter' => '',
+	'no_data_message' => 'nessuna informazione',
+	'no_data_message_en' => 'there is no data',
+	'date_format' => 'd.m.Y'
+    ), $atts));
+
+    if (get_locale() !== 'it_IT') {
+	if ($tableen) {
+		$table = $tableen;
+	}
+	$no_data_message = $no_data_message_en;
+	$date_format = 'M d, Y';
+    }
+
+    // $filter = 'publish=1,' . $filter;
+
+    $e_fields = explode(',', $fields);
+    $e_fields = array_map(function ($x) { return trim($x); }, $e_fields);
+
+    $resp = dm_manager_get('thesis', $sort_field, $filter);
+    $ret[] = $resp['debug'];
+    $ret[] = thesis_manager_display($resp['data'], $e_fields, explode(',', $table), $date_format, $no_data_message);
+    return implode("\n", $ret);
+}
+
+add_shortcode('dm_manager_thesis', 'thesis_manager_shortcode');
 
 /* Shortcode */
 function staff_manager_shortcode( $atts ) {
