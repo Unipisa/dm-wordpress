@@ -89,7 +89,6 @@ class Unimap
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
         curl_setopt($ch, CURLOPT_CUSTOMREQUEST, 'GET');
 
-
         $headers = array();
         $headers[] = 'Accept: application/json';
         $headers[] = 'Authorization: Bearer' . TOKEN;
@@ -145,6 +144,8 @@ class Unimap
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
         curl_setopt($ch, CURLOPT_CUSTOMREQUEST, 'GET');
 
+        $en = get_locale() !== "it_IT";
+        $teaching_desc = $en ? "Teaching" : "Didattica";
 
         $headers = array();
         $headers[] = 'Accept: application/json';
@@ -166,7 +167,7 @@ class Unimap
             //echo '</pre>';
             if(isset($resp['results']['registro'])) {
                 $ret[] = '<!-- wp:pb/accordion-item {"titleTag":"h4","uuid":'.$id.'} -->
-                        <div class="wp-block-pb-accordion-item c-accordion__item js-accordion-item no-js" data-initially-open="false" data-click-to-close="true" data-auto-close="true" data-scroll="false" data-scroll-offset="0"><h4 id="at-1002" class="c-accordion__title js-accordion-controller" role="button">' . __('Courses', 'unipi') . '</h4><div id="ac-1002" class="c-accordion__content">';
+                        <div class="wp-block-pb-accordion-item c-accordion__item js-accordion-item no-js" data-initially-open="false" data-click-to-close="true" data-auto-close="true" data-scroll="false" data-scroll-offset="0"><h4 id="at-1002" class="c-accordion__title js-accordion-controller" role="button">' . $teaching_desc . '</h4><div id="ac-1002" class="c-accordion__content">';
 
                 $ret[] = '<!-- wp:freeform --><ul>';
                 foreach ($resp['results']['registro'] as $kd => $vd) {

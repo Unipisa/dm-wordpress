@@ -23,7 +23,6 @@ function dm_manager_get_by_id($model, $id) {
 
     curl_setopt($ch, CURLOPT_URL, DM_MANAGER_URL . $model . '/' . $id);
     curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
-    // curl_setopt($ch, CURLOPT_CUSTOMREQUEST, 'GET');
 
     $headers = array();
     $headers[] = 'Accept: application/json';
@@ -304,7 +303,7 @@ function grant_manager_details_shortcode( $atts ) {
         }
         $ret[] = "</p>";
         // $ret[] = var_export($grant, TRUE);
-	$ret[] = "<p class='mb-3'>";
+	      $ret[] = "<p class='mb-3'>";
 
         if ($grant['pi']) {
             $pi_name = format_person_name($grant['pi']);
@@ -348,6 +347,12 @@ function dm_manager_person_details_shortcode( $atts ) {
   $p = $res['data'];
   $res = dm_manager_get('staff', '-endDate', 'person=' . $person_id);
   $s = $res['data'];
+
+  $res = dm_manager_get('group', 'name', 'members=' . $person_id);
+  $groups = $res['data'];
+
+  $res = dm_manager_get('grant', '-endDate', 'pi=' . $person_id);
+  $grant = $res['data'];
 
   if (! $p) {
     return "Persona non trovata";
@@ -399,13 +404,9 @@ function dm_manager_person_details_shortcode( $atts ) {
             {$address_desc}
           </div>
         </div>
-        <p></p>
     END;
   }
 
-  $research_group_label = $en ? 'Research group' : 'Gruppo di ricerca';
-
-  // FIXME: Per il momento non abbiamo l'ID nel database, ne stiamo usando uno di prova.
   $unipi_id = ltrim($s[0]['matricola'], 'a');
   if ($unipi_id) {
     $arpi_data = do_shortcode('[arpi id="' . $unipi_id . '"]');
@@ -443,47 +444,182 @@ function dm_manager_person_details_shortcode( $atts ) {
       END;
     }, $pub_links));
 
-    $pub_title = $en ? "Recent publications" : "Pubblicazioni recenti";
+    $pub_title = $en ? "Research" : "Ricerca";
     $see_all = $en ? "See all the publications at:" : "Vedi tutte le pubblicazioni su:";
 
-    $publication_accordion = <<<END
+    $grant_list = [];
+    foreach ($grant as $g) {
+      $grant_list[] = $g;
+
+    }
+    $grant_text = implode("\n", array_map(function ($g) {
+      return <<<END
+        <li>{$g['name']}</li>
+      END;
+    }, $grant_list));
+
+    $grant_block = "";
+    if (count($grant_list) > 0) {
+      $grant_block = <<<END
+      <h5 class="my-2">Finanziamenti</h5>
+          <ul>
+            {$grant_text}
+          </ul>
+      END;
+    }
+
+    $recent_publications = $en ? "Recent publications" : "Pubblicazioni recenti";
+
+    $research_accordion = <<<END
     <div class="wp-block-pb-accordion-item c-accordion__item js-accordion-item" data-initially-open="false" 
     data-click-to-close="true" data-auto-close="true" data-scroll="false" data-scroll-offset="0">
       <h4 id="at-1001" class="c-accordion__title js-accordion-controller" role="button" tabindex="0" aria-controls="ac-1001" aria-expanded="true">
         {$pub_title}
-      </h4>
+      </h4>      
       <div id="ac-1001" class="c-accordion__content" style="display: block;">
+        <h5>{$recent_publications}</h5>
         {$arpi_data}
         {$see_all} {$pub_links_html}
+        {$grant_block}
       </div>
     </div>  
     END;
   }
 
+  if ($en) {
+    $research_group_label = "${research_group} Research Group";
+  }
+  else {
+    $research_group_label = "Gruppo di Ricerca in ${research_group}";
+  }
+
   $research_group_text = $research_group ? <<<END
-  <p>
-    <strong>{$research_group_label}: </strong>{$research_group}
+  <p class="my-1">
+    <i class="fas fa-users mr-2"></i>{$research_group_label}
   </p>
-  <p></p>
   END : "";
   
   $email_text = $email ? <<<END
-  <p>
+  <p class="my-1">
     <i class="fas fa-at mr-2"></i><a href="mailto:{$email}">{$email}</a>
   </p>
   END : "";
 
   $phone_text = $phone ? <<<END
-  <p>
+  <p class="my-1">
     <i class="fas fa-phone mr-2"></i><a href="tel:{$phone}">{$phone}</a>
   </p>
   END : "";
 
   $web_text = $web ? <<<END
-  <p>
+  <p class="my-1">
     <i class="fas fa-link mr-2"></i><a href="{$web}">{$web}</a>
   </p>
   END : "";
+
+  // FIXME: Sotto qualifica va verificato se uno degli incarichi è Direttore del DM, Presidente CdS, 
+  // Vicedirettore e vicepresidente e coordinatore dottorato. Si fanno apparire con un badge accanto al nome.
+
+  $duties_title = $en ? 'Administrative duties' : 'Incarichi';
+
+  $group_list = [];
+  foreach ($groups as $g) {
+    $group_list[] = $g;
+  }
+
+  // Sort the groups according to the following rule: 
+  //  1) Groups with one person only
+  //  2) Group where the user is either chair or vice
+  //  3) Other groups.
+  usort($group_list, function ($a, $b) use ($person_id) {
+    $classifier = function ($x) use ($person_id) {
+      if (count($x['members']) == 1) {
+        return 1;
+      }
+      else if ($x['chair']['_id'] == $person_id) {
+        return 2;
+      }
+      else if ($x['vice']['_id'] == $person_id) {
+        return 3;
+      }
+      else {
+        return 4;
+      }
+    };
+
+    return $classifier($a) - $classifier($b);
+  });
+
+  $single_groups = array_filter($group_list, function ($x) { return count($x['members']) == 1; });
+  $other_groups  = array_filter($group_list, function ($x) { return count($x['members']) != 1; });
+
+  $single_group_text = implode("\n", array_map(function ($g) use ($en) {
+    return <<<END
+      <li>{$g['name']}</li>
+    END;
+  }, $single_groups));
+
+  $other_group_text = implode("\n", array_map(function ($g) use ($person_id, $en) {
+    if (! str_starts_with($g['name'], 'MAT/')) {
+      $badge = "";
+      if ($g['chair']['_id'] == $person_id) {
+        $chair_name = $en ? "Chair" : $g['chair_title'];
+        $badge .= "<span class=\"badge badge-primary mr-2\">{$chair_name}</span>";
+      }
+      if ($g['vice']['_id'] == $person_id) {
+        $vice_name = $en ? "Deputy Chair" : $g['vice_title'];
+        $badge .= "<span class=\"badge badge-primary mr-2\">{$vice_name}</span>";
+      }
+
+      return <<<END
+        <li>{$g['name']} {$badge}</li>
+      END;
+    }
+    else {
+      return "";
+    }
+  }, $other_groups));
+
+  // Translations
+  $referente = $en ? "Representative for" : "Referente per";
+  $membro = $en ? "Member of" : "Membro di";
+
+  if (count($single_groups) > 0) {
+    $single_group_block = <<<END
+    <h5>{$referente}:</h5>
+    <ul>
+      {$single_group_text}
+    </ul>
+    END;
+  }
+  else {
+    $single_group_block = "";
+  }
+
+  if (count($other_groups) > 0) {
+    $other_group_block = <<<END
+    <h5>{$membro}:</h5>
+        <ul>
+          {$other_group_text}
+        </ul>
+    END;
+  }
+  else {
+    $other_group_block = "";
+  }
+
+  $duties_accordion = <<<END
+  <div class="wp-block-pb-accordion-item c-accordion__item js-accordion-item" data-initially-open="false" 
+    data-click-to-close="true" data-auto-close="true" data-scroll="false" data-scroll-offset="0">
+      <h4 id="at-1003" class="c-accordion__title js-accordion-controller" role="button" tabindex="0" aria-controls="ac-1003" aria-expanded="true">
+        {$duties_title}
+      </h4>
+      <div id="ac-1003" class="c-accordion__content" style="display: block;">
+        {$single_group_block}
+        {$other_group_block}
+      </div>
+    </div>  
+  END;
 
   return <<<END
   <div class="entry-content box clearfix">
@@ -492,7 +628,8 @@ function dm_manager_person_details_shortcode( $atts ) {
         <img width="280" height="280" src="{$imageurl}" class="rounded img-fluid" alt="" decoding="async">
       </div>
       <div class="ml-4">
-        <div class="h4">{$qualification}</div>
+        <div class="h2 mb-3">{$p['firstName']} {$p['lastName']}</div>
+        <div class="h5 mb-3">{$qualification}</div>
       {$research_group_text}
       {$room_desc}
       {$email_text}
@@ -501,7 +638,8 @@ function dm_manager_person_details_shortcode( $atts ) {
       </div>
     </div>
   </div>
-  {$publication_accordion}
+  {$duties_accordion}
+  {$research_accordion}
   {$courses_data}
   END;
 }
@@ -509,3 +647,142 @@ function dm_manager_person_details_shortcode( $atts ) {
 add_shortcode('dm_manager_person_details', 'dm_manager_person_details_shortcode');
 
 
+function dm_manager_group_list($atts) {
+  $en = get_locale() !== 'it_IT';
+
+  $group_id = $atts['group_id'];
+  $res = dm_manager_get_by_id('group', $group_id);
+  $group = $res['data'];
+
+  $members_list = implode("\n", array_map(function ($m) {
+    return <<<END
+      <li>{$m['firstName']} {$m['lastName']}</li>
+    END;
+  }, $group['members']));
+
+  if ($group['chair']) {
+    $chair = $group['chair'];
+    $chair_text = <<<END
+      <li>{$chair['firstName']} {$chair['lastName']} <span class="badge badge-primary">{$group['chair_title']}</span></li>
+    END;
+  }
+  else {
+    $chair_text = "";
+  }
+
+  if ($group['vice']) {
+    $chair = $group['vice'];
+    $vice_text = <<<END
+      <li>{$chair['firstName']} {$chair['lastName']} <span class="badge badge-primary">{$group['vice_title']}</span></li>
+    END;
+  }
+  else {
+    $vice_text = "";
+  }
+
+  return <<<END
+    <h5>{$group['name']}</h5>
+    <ul>
+      {$chair_text}
+      {$vice_text}
+      {$members_list}
+    </ul>
+  END;
+}
+
+add_shortcode('dm_manager_group', 'dm_manager_group_list');
+
+function generate_person_card($p, $badge = null) {
+    $en = get_locale() !== 'it_IT';
+
+    if ($p['email']) {
+        $email = $p['email'];
+        $email_block = <<<END
+        <i class="fas fa-at mr-3"></i><a href="mailto:{$email}">{$email}</a>
+        END;
+    }
+    else {
+        $email_block = "";
+    }
+
+    if ($badge) {
+        $badge_block = <<<END
+        <span class="badge badge-sm badge-primary ml-2">{$badge}</span>
+        END;
+    }
+    else {
+        $badge_block = "";
+    }
+    
+    return <<<END
+    <div class="col-lg-6 col-12 py-2">
+      <div class="card h-100 m-2 shadow-sm">
+      <div class="card-body">
+      <a href="/scheda-personale/?person_id={$p['_id']}">
+          <i class="fas fa-id-card fa-fw mr-2"></i>
+      </a>
+      <span class="card-title h5">
+        {$p['firstName']} {$p['lastName']}
+        {$badge_block}
+      </span><br>
+        {$email_block}
+      </div>
+      </div>
+    </div>
+  END;
+}
+
+function dm_manager_group_cards($atts) {
+  $en = get_locale() !== 'it_IT';
+
+  $group_id = $atts['group_id'];
+  $res = dm_manager_get_by_id('group', $group_id);
+  $group = $res['data'];
+
+  usort($group['members'], function ($a, $b) {
+    return strcmp($a['lastName'], $b['lastName']);
+  });
+
+  $members_list = implode("\n", array_map(function ($m) {
+    return generate_person_card($m);
+  }, $group['members']));
+
+  if ($group['chair']) {
+    $chair = $group['chair'];
+    $chair_text = generate_person_card($chair, $group['chair_title']);
+  }
+  else {
+    $chair_text = "";
+  }
+
+  if ($group['vice']) {
+    $vice = $group['vice'];
+    $vice_text = generate_person_card($vice, $group['vice_title']);
+  }
+  else {
+    $vice_text = "";
+  }
+
+  return <<<END
+    <h5>{$group['name']}</h5>
+    <div class="d-flex row justify-content-between px-2 pb-4">
+      {$chair_text}
+      {$vice_text}
+      {$members_list}
+    </div>
+  END;
+}
+
+add_shortcode('dm_manager_group_cards', 'dm_manager_group_cards');
+
+function dm_manager_person_card($atts) {
+    $person_id = $atts['person_id'];
+    $badge = $atts['badge'];
+
+    $res = dm_manager_get_by_id('person', $person_id);
+    $person = $res['data'];
+
+    return generate_person_card($person, $badge);
+}
+
+add_shortcode('dm_manager_person_card', 'dm_manager_person_card');
