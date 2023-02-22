@@ -243,6 +243,13 @@ function thesis_manager_display($data, $fields, $table, $date_format, $no_data_m
 				} else if ($field == 'person._id') {
 					$val = '<a href="/scheda-personale/?person_id=' . $val . '">'
 					. '<i class="fas fa-id-card fa-fw"></i></a>';
+				} else if ($field == 'advisors') {
+					$advisors = $val;
+					$val = [];
+					foreach ($advisors as $advisor) {
+						$val[]=$advisor['lastName'];
+					}
+					$val = implode(' and ', $val);
 				}
 				$ret[]='<td>'.$val.'</td>';
 			}
