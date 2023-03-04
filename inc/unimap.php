@@ -146,6 +146,7 @@ class Unimap
 
         $en = get_locale() !== "it_IT";
         $teaching_desc = $en ? "Teaching" : "Didattica";
+        $courses_desc = $en ? "Courses for the current academic year:" : "Corsi insegnati nel corrente anno accademico:";
 
         $headers = array();
         $headers[] = 'Accept: application/json';
@@ -169,6 +170,7 @@ class Unimap
                 $ret[] = '<!-- wp:pb/accordion-item {"titleTag":"h4","uuid":'.$id.'} -->
                         <div class="wp-block-pb-accordion-item c-accordion__item js-accordion-item no-js" data-initially-open="false" data-click-to-close="true" data-auto-close="true" data-scroll="false" data-scroll-offset="0"><h4 id="at-1002" class="c-accordion__title js-accordion-controller" role="button">' . $teaching_desc . '</h4><div id="ac-1002" class="c-accordion__content">';
 
+                $ret[] = '<p>' . $courses_desc . '</p>';
                 $ret[] = '<!-- wp:freeform --><ul>';
                 foreach ($resp['results']['registro'] as $kd => $vd) {
                     $ret[] = '<li>';

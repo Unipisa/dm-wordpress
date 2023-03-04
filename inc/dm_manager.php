@@ -111,6 +111,7 @@ function dm_manager_get($model, $sort_field, $filter) {
 
 function people_manager_display($data, $fields, $table, $date_format, $no_data_message) {
     $ret[] = '<!-- 200 OK -->';
+    $en = get_locale() !== 'it_IT';
     if (count($data)) {
  		  $ret[] = '<table class="peopletable">';
 		  $ret[] = '<thead><tr>';
@@ -140,7 +141,7 @@ function people_manager_display($data, $fields, $table, $date_format, $no_data_m
 					. '<i class="fas fa-phone-alt fa-fw"></i> <span class="d-none d-lg-inline">'
 					. $val.'</span></a>';
 				} else if ($field == 'person._id') {
-					$val = '<a href="/scheda-personale/?person_id=' . $val . '">'
+					$val = '<a href="' . ($en ? '/en' : '') . '/scheda-personale/?person_id=' . $val . '">'
 					. '<i class="fas fa-id-card fa-fw"></i></a>';
 				}
 				$ret[]='<td>'.$val.'</td>';
@@ -452,6 +453,8 @@ add_shortcode('grant_manager_details', 'grant_manager_details_shortcode');
 function dm_manager_person_details_shortcode( $atts ) {
   $en = get_locale() !== 'it_IT';
 
+
+  $dateFormat = 'M d, Y';
   $person_id = $_GET['person_id'];
 
   if (! $person_id) {
@@ -460,23 +463,23 @@ function dm_manager_person_details_shortcode( $atts ) {
 
   $res = dm_manager_get_by_id('person', $person_id);
   $p = $res['data'];
-  $res = dm_manager_get('staff', '-endDate', 'person=' . $person_id);
+  $res = dm_manager_get('staff', '-endDate', 'person=' . $person_id . ',endDate__gte_or_null=today,startDate__lte_or_null=today');
   $s = $res['data'];
 
-  $res = dm_manager_get('group', 'name', 'members=' . $person_id);
+  $res = dm_manager_get('group', 'name', 'members=' . $person_id . ',endDate__gte_or_null=today,startDate__lte_or_null=today');
   $groups = $res['data'];
 
-  $res = dm_manager_get('grant', '-endDate', 'pi=' . $person_id);
+  $res = dm_manager_get('grant', '-endDate', 'pi=' . $person_id . ",endDate__gte=today,startDate__lte=today");
   $grant = $res['data'];
 
   if (! $p) {
     return "Persona non trovata";
   }
 
-  $imageurl = $p['photoUrl']; 
+  $imageUrl = $p['photoUrl']; 
 
-  if (! $imageurl) {
-    $imageurl = 'https://i0.wp.com/www.dm.unipi.it/wp-content/uploads/2022/07/No-Image-Placeholder.svg_.png?resize=280%2C280&ssl=1';
+  if (! $imageUrl || $imageUrl == "") {
+    $imageUrl = "https://www.dm.unipi.it/wp-content/uploads/2022/07/No-Image-Placeholder.svg_.png";
   }
 
   // Generate the qualification string
@@ -567,16 +570,26 @@ function dm_manager_person_details_shortcode( $atts ) {
       $grant_list[] = $g;
 
     }
-    $grant_text = implode("\n", array_map(function ($g) {
+    $grant_text = implode("\n", array_map(function ($g) use ($dateFormat, $en) {
+      $sd = get_dotted_field($g, 'startDate', $dateFormat);
+      $ed = get_dotted_field($g, 'endDate', $dateFormat);
+      $pp_text = $en ? "Project period" : "Periodo";
       return <<<END
-        <li>{$g['name']}</li>
+        <li>
+          <a href="/research/grant-details/?grant_id={$g['_id']}">{$g['name']}</a> 
+          <span class="text-muted small">({$g['projectType']})</span><br>
+          Principal Investigator: <em>{$g['pi']['firstName']} {$g['pi']['lastName']}</em>. <br>
+          {$pp_text}: {$sd} &ndash; {$ed}
+        </li>
       END;
     }, $grant_list));
+
+    $finanziamenti_desc = $en ? 'Grants' : 'Finanziamenti';
 
     $grant_block = "";
     if (count($grant_list) > 0) {
       $grant_block = <<<END
-      <h5 class="my-2">Finanziamenti</h5>
+      <h5 class="my-2">{$finanziamenti_desc}</h5>
           <ul>
             {$grant_text}
           </ul>
@@ -696,12 +709,10 @@ function dm_manager_person_details_shortcode( $atts ) {
   }, $other_groups));
 
   // Translations
-  $referente = $en ? "Representative for" : "Referente per";
   $membro = $en ? "Member of" : "Membro di";
 
   if (count($single_groups) > 0) {
     $single_group_block = <<<END
-    <h5>{$referente}:</h5>
     <ul>
       {$single_group_text}
     </ul>
@@ -723,24 +734,31 @@ function dm_manager_person_details_shortcode( $atts ) {
     $other_group_block = "";
   }
 
-  $duties_accordion = <<<END
-  <div class="wp-block-pb-accordion-item c-accordion__item js-accordion-item" data-initially-open="false" 
-    data-click-to-close="true" data-auto-close="true" data-scroll="false" data-scroll-offset="0">
-      <h4 id="at-1003" class="c-accordion__title js-accordion-controller" role="button" tabindex="0" aria-controls="ac-1003" aria-expanded="true">
-        {$duties_title}
-      </h4>
-      <div id="ac-1003" class="c-accordion__content" style="display: block;">
-        {$single_group_block}
-        {$other_group_block}
-      </div>
-    </div>  
-  END;
+  if (count($other_groups) > 0 || count($single_groups) > 0) {
+    $duties_accordion = <<<END
+    <div class="wp-block-pb-accordion-item c-accordion__item js-accordion-item" data-initially-open="false" 
+      data-click-to-close="true" data-auto-close="true" data-scroll="false" data-scroll-offset="0">
+        <h4 id="at-1003" class="c-accordion__title js-accordion-controller" role="button" tabindex="0" aria-controls="ac-1003" aria-expanded="true">
+          {$duties_title}
+        </h4>
+        <div id="ac-1003" class="c-accordion__content" style="display: block;">
+          {$single_group_block}
+          {$other_group_block}
+        </div>
+      </div>  
+    END;
+  }
+  else {
+    $duties_accordion = "";
+  }
+
+  
 
   return <<<END
   <div class="entry-content box clearfix">
     <div class="d-flex flex-wrap align-middle">
       <div class="mr-4 mb-4">
-        <img width="280" height="280" src="{$imageurl}" class="rounded img-fluid" alt="" decoding="async">
+        <img width="280" height="280" src="{$imageUrl}" class="rounded img-fluid" alt="" decoding="async">
       </div>
       <div class="ml-4">
         <div class="h2 mb-3">{$p['firstName']} {$p['lastName']}</div>
@@ -796,7 +814,6 @@ function dm_manager_group_list($atts) {
   }
 
   return <<<END
-    <h5>{$group['name']}</h5>
     <ul>
       {$chair_text}
       {$vice_text}
@@ -879,7 +896,6 @@ function dm_manager_group_cards($atts) {
   }
 
   return <<<END
-    <h5>{$group['name']}</h5>
     <div class="d-flex row justify-content-between px-2 pb-4">
       {$chair_text}
       {$vice_text}
