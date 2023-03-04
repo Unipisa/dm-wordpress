@@ -131,7 +131,7 @@ function people_manager_display($data, $fields, $table, $date_format, $no_data_m
 				if ($field == 'roomAssignment.room.building') {
 					if ($val == 'A') $val = 'Edificio A';
 					if ($val == 'B') $val = 'Edificio B';
-					if ($val == 'X') $val = 'Ex-Albergo';
+					if ($val == 'X') $val = 'ex-DMA';
 				} else if ($field == 'person.email' && $val!='') {
 					$val = '<a href="mailto:' . $val . '">'
 					. '<i class="far fa-envelope fa-fw"></i><span class="d-none d-lg-inline">'
