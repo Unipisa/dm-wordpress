@@ -5,6 +5,13 @@ if ( !defined( 'ABSPATH' ) ) exit;
 include 'secrets.php';
 include_once('translations.php');
 
+function buildingName($val, $en=false) {
+	if ($val == 'A') return $en ? 'Building A' : 'Edificio A';
+	if ($val == 'B') return $en ? 'Building B' : 'Edificio B';
+	if ($val == 'X') return 'ex DMA';
+	return $val;
+}
+
 function get_dotted_field($obj, $dotted_field, $date_format) {
 	foreach (explode(".", $dotted_field) as $field) {
 		$obj = $obj[$field];
@@ -78,7 +85,7 @@ function dm_manager_get($model, $sort_field, $filter) {
 	}
 
 	$url = DM_MANAGER_URL . $model . '?' . implode('&', $query);
-	$ret[] = '<!-- QUERY_STRING ' . $url . ' -->';
+	$ret[] = '<!-- QUERY_STRING [' . $url . '] -->';
 
         curl_setopt($ch, CURLOPT_URL, $url);
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
@@ -129,9 +136,7 @@ function people_manager_display($data, $fields, $table, $date_format, $no_data_m
 			foreach ($fields as $field) {
 				$val = get_dotted_field($row, $field, $date_format);
 				if ($field == 'roomAssignment.room.building') {
-					if ($val == 'A') $val = 'Edificio A';
-					if ($val == 'B') $val = 'Edificio B';
-					if ($val == 'X') $val = 'ex-DMA';
+					$val = buildingName($val);
 				} else if ($field == 'person.email' && $val!='') {
 					$val = '<a href="mailto:' . $val . '">'
 					. '<i class="far fa-envelope fa-fw"></i><span class="d-none d-lg-inline">'
@@ -248,10 +253,10 @@ function thesis_manager_display($data, $fields, $table, $date_format, $no_data_m
 					$advisors = $val;
 					$val = [];
 					foreach ($advisors as $advisor) {
-						$val[]=$advisor['lastName'];
+						$val[]=$advisor['firstName']."  ".$advisor['lastName'];
 					}
 					$val = implode(' and ', $val);
-				}
+				} 
 				$ret[]='<td>'.$val.'</td>';
 			}
 			$ret[]='</tr>';
@@ -279,16 +284,18 @@ function thesis_manager_shortcode( $atts ) {
 	'filter' => '',
 	'no_data_message' => 'nessuna informazione',
 	'no_data_message_en' => 'there is no data',
-	'date_format' => 'd.m.Y',
+	'date_format' => false,
 	'list_mode' => false
     ), $atts));
 
-    if (get_locale() !== 'it_IT') {
+    if (get_locale() === 'it_IT') {
+	if (!$date_format) $date_format = 'd.m.Y';
+    } else {
 	if ($tableen) {
 		$table = $tableen;
 	}
 	$no_data_message = $no_data_message_en;
-	$date_format = 'M d, Y';
+	if (!$date_format) $date_format = 'M d, Y';
     }
 
     // $filter = 'publish=1,' . $filter;
@@ -504,7 +511,7 @@ function dm_manager_person_details_shortcode( $atts ) {
     $address .= '56127 Pisa (PI), Italy.';
     $floor_desc = dm_manager_floor_label($room['floor'], $en);
 
-    $address_desc =  ($en ? 'Building ' : 'Edificio ') . $room['building'] . ', ' . $floor_desc . ', ' 
+    $address_desc =  buildingName($room['building'], $en) . ', ' . $floor_desc . ', ' 
       . ($en ? 'Room ' : 'Stanza ') .  $room['number'] . ', <br>'
       . $address;
   }
@@ -744,7 +751,7 @@ function dm_manager_person_details_shortcode( $atts ) {
         <div id="ac-1003" class="c-accordion__content" style="display: block;">
           {$single_group_block}
           {$other_group_block}
-        </div>
+        </div>  
       </div>  
     END;
   }
@@ -826,6 +833,7 @@ add_shortcode('dm_manager_group', 'dm_manager_group_list');
 
 function generate_person_card($p, $badge = null) {
     $en = get_locale() !== 'it_IT';
+    $prefix = $en ? 'en/' : '';
 
     if ($p['email']) {
         $email = $p['email'];
@@ -850,10 +858,8 @@ function generate_person_card($p, $badge = null) {
     <div class="col-lg-6 col-12 py-2">
       <div class="card h-100 m-2 shadow-sm">
       <div class="card-body">
-      <a href="/scheda-personale/?person_id={$p['_id']}">
-          <i class="fas fa-id-card fa-fw mr-2"></i>
-      </a>
-      <span class="card-title h5">
+      <a href="/${prefix}scheda-personale/?person_id={$p['_id']}"><i class="fas fa-id-card fa-fw"></i></a>
+      <span class="card-title ml-2 h5">
         {$p['firstName']} {$p['lastName']}
         {$badge_block}
       </span><br>
@@ -868,6 +874,8 @@ function dm_manager_group_cards($atts) {
   $en = get_locale() !== 'it_IT';
 
   $group_id = $atts['group_id'];
+  $isInternal = $atts['isinternal'];
+
   $res = dm_manager_get_by_id('group', $group_id);
   $group = $res['data'];
 
@@ -875,19 +883,50 @@ function dm_manager_group_cards($atts) {
     return strcmp($a['lastName'], $b['lastName']);
   });
 
+  $group_members = $group['members'];
+
+  // We setup a filter for the members based on their isInternal status in (any of) their affiliation
+  $member_filter = function ($x) { return true; };
+
+  // Whenever isInternal={0|1} is specified, we set up a true member filter, and for that to work 
+  // we need to obtain a list of all the available staff at this moment in time. 
+  if ($isInternal !== null) {
+    // Since the group does not contain the information on the staff, just 
+    // the person object, we retrieve a list of all current staffs, and then
+    // use it to filter the members array.
+    $res = dm_manager_get('staff', '-endDate', 'startDate__lte_or_null=today,endDate__gte_or_null=today');
+    $current_staff = $res['data'];
+
+    // We are using an array with keys as IDs to make the following lookup O(1) or O(log n), 
+    // depending on what the current implementation in PHP does.
+    $current_staff_ids = array_flip(array_map(function ($s) {
+        return $s['person']['_id'];
+    }, $current_staff));
+
+    // Filter the members of the group excluding the ones external
+    if ($isInternal == '1') {
+        $member_filter = function ($x) use ($current_staff_ids) { return array_key_exists($x['_id'], $current_staff_ids); };
+    }
+    if ($isInternal == '0') {
+        $member_filter = function ($x) use ($current_staff_ids) { return ! array_key_exists($x['_id'], $current_staff_ids); };
+    }
+  }
+
+  $group_members = array_filter($group['members'], $member_filter);
+
   $members_list = implode("\n", array_map(function ($m) {
     return generate_person_card($m);
-  }, $group['members']));
+  }, $group_members));
 
-  if ($group['chair']) {
+  if ($group['chair'] && $member_filter($group['chair'])) {
     $chair = $group['chair'];
-    $chair_text = generate_person_card($chair, $group['chair_title']);
+    $chair_text = generate_person_card($chair, $group['chair_title']);    
   }
   else {
     $chair_text = "";
   }
 
-  if ($group['vice']) {
+  if ($group['vice'] && $member_filter($group['vice'])) {
     $vice = $group['vice'];
     $vice_text = generate_person_card($vice, $group['vice_title']);
   }
