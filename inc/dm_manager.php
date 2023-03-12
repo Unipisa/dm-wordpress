@@ -80,7 +80,7 @@ function dm_manager_get($model, $sort_field, $filter) {
           } elseif ($key == 'dateyear') {
 		$query[] = 'date__lte=' . $val . '-12-31&date__gte=' . $val . '-01-01';
           } else {
-		$query[] = $key . '=' . $val;
+		$query[] = $key . '=' . urlencode($val);
 	  }
 	}
 
