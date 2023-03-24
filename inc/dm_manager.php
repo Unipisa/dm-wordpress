@@ -3,6 +3,7 @@
 if ( !defined( 'ABSPATH' ) ) exit;
 
 include 'secrets.php';
+include_once('unimap.php');
 include_once('translations.php');
 
 function buildingName($val, $en=false) {
@@ -135,24 +136,30 @@ function people_manager_display($data, $fields, $table, $date_format, $no_data_m
 			$ret[]='<tr>';
 			foreach ($fields as $field) {
 				$val = get_dotted_field($row, $field, $date_format);
-				if ($field == 'roomAssignment.room.building') {
-					$val = buildingName($val);
-				} else if ($field == 'person.email' && $val!='') {
+        if ($field == 'building' || $field == 'roomAssignment.room.building') {
+          $val = buildingName($val, $en);
+        }
+        else if ($field == 'roomNumber') {
+          $val = str_replace("Piano", "Floor", $val);
+        }
+	else if ($field == 'person.email' && $val!='') {
 					$val = '<a href="mailto:' . $val . '">'
 					. '<i class="far fa-envelope fa-fw"></i><span class="d-none d-lg-inline">'
 					. $val . '</span></a>';
-				} else if ($field == 'person.phone' && $val!='') {
+	} else if ($field == 'person.phone' && $val!='') {
 					$val = '<a href="tel:' . $val . '">'
 					. '<i class="fas fa-phone-alt fa-fw"></i> <span class="d-none d-lg-inline">'
 					. $val.'</span></a>';
-				} else if ($field == 'person._id') {
+	} else if ($field == 'person._id') {
 					$val = '<a href="' . ($en ? '/en' : '') . '/scheda-personale/?person_id=' . $val . '">'
 					. '<i class="fas fa-id-card fa-fw"></i></a>';
-				}
+	} else if ($field == 'affiliations') {
+		$val = implode(', ', array_map(function ($a) { return $a['name']; }, $val));
+	}
 				$ret[]='<td>'.$val.'</td>';
-			}
+    }
 			$ret[]='</tr>';
-		  }
+    }
 		  $ret[] = '</tbody></table>';
     } else {
 		  $ret[] = '<p>' . $no_data_message . '</p>';
@@ -219,7 +226,7 @@ function thesis_manager_display($data, $fields, $table, $date_format, $no_data_m
 			$ret[] = '<li>';
                         $ret[] = $row['person']['firstName'];
 			$ret[] = $row['person']['lastName'];
-			if ($row['affiliation']) $ret[] = '(' . $row['affiliation'] . ')';
+			if ($row['affiliation']) $ret[] = '(' . $row['affiliation']['name'] . ')';
 			if ($row['title']) $ret[] = '"' . $row['title'] . '"';
 			if ($row['advisors']) {
 			  $ret[] = 'supervised by';
@@ -253,7 +260,8 @@ function thesis_manager_display($data, $fields, $table, $date_format, $no_data_m
 					$advisors = $val;
 					$val = [];
 					foreach ($advisors as $advisor) {
-						$val[]=$advisor['firstName']."  ".$advisor['lastName'];
+                        $person_id = $advisor['_id'];
+						$val[]= "<a href=\"/scheda-personale/?person_id=$person_id\">" . $advisor['firstName']."  ".$advisor['lastName'] . '</a>';
 					}
 					$val = implode(' and ', $val);
 				} 
@@ -375,7 +383,7 @@ function grant_manager_display($data, $date_format, $no_data_message) {
 }
 
 function format_person_name($ob) {
-	return $ob['firstName'] . " " . $ob['lastName'] . " (" . $ob['affiliation'] . ")";
+	return $ob['firstName'] . " " . $ob['lastName'] . " (" . implode(', ', array_map(function ($a) {return $a['name'];},$ob['affiliations'])) . ")";
 }
 
 function grant_manager_shortcode( $atts ) {
@@ -473,11 +481,34 @@ function dm_manager_person_details_shortcode( $atts ) {
   $res = dm_manager_get('staff', '-endDate', 'person=' . $person_id . ',endDate__gte_or_null=today,startDate__lte_or_null=today');
   $s = $res['data'];
 
+  // Get the groups for which the user is either member, chair, or vice
   $res = dm_manager_get('group', 'name', 'members=' . $person_id . ',endDate__gte_or_null=today,startDate__lte_or_null=today');
   $groups = $res['data'];
+  $res = dm_manager_get('group', 'name', 'chair=' . $person_id . ',endDate__gte_or_null=today,startDate__lte_or_null=today');
+  $groups = array_merge($groups, $res['data']);
+  $res = dm_manager_get('group', 'name', 'vice=' . $person_id . ',endDate__gte_or_null=today,startDate__lte_or_null=today');
+  $groups = array_merge($groups, $res['data']);
 
+  // Remove duplicates, if any
+  $deduplicated_groups = [];
+  foreach ($groups as $g) {
+    $deduplicated_groups[$g['_id']] = $g;
+  }
+  $groups = $deduplicated_groups;
+
+  // For grants, we need to get the list of the ones where the user is either PI, localCoordinator, or member. 
+  // We get them all, merge them, and then sort them by endDate. 
+  $grant = [];
   $res = dm_manager_get('grant', '-endDate', 'pi=' . $person_id . ",endDate__gte=today,startDate__lte=today");
-  $grant = $res['data'];
+  $grant_pi = $res['data'];
+  $res = dm_manager_get('grant', '-endDate', 'localCoordinator=' . $person_id . ",endDate__gte=today,startDate__lte=today");
+  $grant_lc = $res['data'];
+  $res = dm_manager_get('grant', '-endDate', 'members=' . $person_id . ",endDate__gte=today,startDate__lte=today");
+  $grant_member = $res['data'];
+  foreach ($grant_pi as $g) { $grant[$g['_id']] = $g; }
+  foreach ($grant_lc as $g) { $grant[$g['_id']] = $g; }
+  foreach ($grant_member as $g) { $grant[$g['_id']] = $g; }
+  usort($grant, function ($g1, $g2) { return (($g1['endDate'] < $g2['endDate']) ? 1 : -1); });
 
   if (! $p) {
     return "Persona non trovata";
@@ -536,8 +567,18 @@ function dm_manager_person_details_shortcode( $atts ) {
   if ($unipi_id) {
     $arpi_data = do_shortcode('[arpi id="' . $unipi_id . '"]');
     $courses_data = do_shortcode('[persona id="' . $unipi_id . '"]');
-
     $pub_links = [];
+
+    // Everybody has an ARPI publication link
+    $unimap = new Unimap();
+    $arpilink = $unimap->getArpiLink($unipi_id);
+    if ($arpilink) {
+        $pub_links[] = [
+            "label" => "Arpi", 
+            "url" => $arpilink
+        ];
+    }
+
     if ($p['google_scholar']) { 
       $pub_links[] = [ 
         "label" => "Google Scholar", 
@@ -585,7 +626,7 @@ function dm_manager_person_details_shortcode( $atts ) {
         <li>
           <a href="/research/grant-details/?grant_id={$g['_id']}">{$g['name']}</a> 
           <span class="text-muted small">({$g['projectType']})</span><br>
-          Principal Investigator: <em>{$g['pi']['firstName']} {$g['pi']['lastName']}</em>. <br>
+          Principal Investigator: <em>{$g['pi']['firstName']} {$g['pi']['lastName']}</em><br>
           {$pp_text}: {$sd} &ndash; {$ed}
         </li>
       END;
@@ -603,22 +644,33 @@ function dm_manager_person_details_shortcode( $atts ) {
       END;
     }
 
-    $recent_publications = $en ? "Recent publications" : "Pubblicazioni recenti";
+    $recent_publications = "<h5>" . ($en ? "Recent publications" : "Pubblicazioni recenti") . "</h5>";
 
-    $research_accordion = <<<END
-    <div class="wp-block-pb-accordion-item c-accordion__item js-accordion-item" data-initially-open="false" 
-    data-click-to-close="true" data-auto-close="true" data-scroll="false" data-scroll-offset="0">
-      <h4 id="at-1001" class="c-accordion__title js-accordion-controller" role="button" tabindex="0" aria-controls="ac-1001" aria-expanded="true">
-        {$pub_title}
-      </h4>      
-      <div id="ac-1001" class="c-accordion__content" style="display: block;">
-        <h5>{$recent_publications}</h5>
-        {$arpi_data}
-        {$see_all} {$pub_links_html}
-        {$grant_block}
-      </div>
-    </div>  
-    END;
+    if ($arpi_data == "") {
+      $recent_publications = "";
+    }
+
+    if ($grant_text == "" && $arpi_data == "") {
+      $research_accordion = "";
+    }
+    else {
+      $research_accordion = <<<END
+      <div class="wp-block-pb-accordion-item c-accordion__item js-accordion-item" data-initially-open="false" 
+      data-click-to-close="true" data-auto-close="true" data-scroll="false" data-scroll-offset="0">
+        <h4 id="at-1001" class="c-accordion__title js-accordion-controller" role="button" tabindex="0" aria-controls="ac-1001" aria-expanded="true">
+          {$pub_title}
+        </h4>      
+        <div id="ac-1001" class="c-accordion__content" style="display: block;">
+          {$recent_publications}
+          {$arpi_data}
+          {$see_all} {$pub_links_html}
+          {$grant_block}
+        </div>
+      </div>  
+      END;
+    }
+
+    
   }
 
   if ($en) {
@@ -689,9 +741,14 @@ function dm_manager_person_details_shortcode( $atts ) {
   $other_groups  = array_filter($group_list, function ($x) { return count($x['members']) != 1; });
 
   $single_group_text = implode("\n", array_map(function ($g) use ($en) {
-    return <<<END
-      <li>{$g['name']}</li>
-    END;
+    if (!str_starts_with($g['name'], 'MAT/')) {
+      return <<<END
+        <li>{$g['name']}</li>
+      END;
+    }
+    else {
+      return "";
+    }
   }, $single_groups));
 
   $other_group_text = implode("\n", array_map(function ($g) use ($person_id, $en) {
@@ -741,7 +798,7 @@ function dm_manager_person_details_shortcode( $atts ) {
     $other_group_block = "";
   }
 
-  if (count($other_groups) > 0 || count($single_groups) > 0) {
+  if ($other_group_text != "" || $single_group_text != "") {
     $duties_accordion = <<<END
     <div class="wp-block-pb-accordion-item c-accordion__item js-accordion-item" data-initially-open="false" 
       data-click-to-close="true" data-auto-close="true" data-scroll="false" data-scroll-offset="0">
