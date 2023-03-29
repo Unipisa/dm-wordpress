@@ -740,7 +740,7 @@ function dm_manager_person_details_shortcode( $atts ) {
   $single_groups = array_filter($group_list, function ($x) { return count($x['members']) == 1; });
   $other_groups  = array_filter($group_list, function ($x) { return count($x['members']) != 1; });
 
-  $single_group_text = implode("\n", array_map(function ($g) use ($en) {
+  $single_group_text = trim(implode("\n", array_map(function ($g) use ($en) {
     if (!str_starts_with($g['name'], 'MAT/')) {
       return <<<END
         <li>{$g['name']}</li>
@@ -749,9 +749,9 @@ function dm_manager_person_details_shortcode( $atts ) {
     else {
       return "";
     }
-  }, $single_groups));
+  }, $single_groups)));
 
-  $other_group_text = implode("\n", array_map(function ($g) use ($person_id, $en) {
+  $other_group_text = trim(implode("\n", array_map(function ($g) use ($person_id, $en) {
     if (! str_starts_with($g['name'], 'MAT/')) {
       $badge = "";
       if ($g['chair']['_id'] == $person_id) {
@@ -770,12 +770,12 @@ function dm_manager_person_details_shortcode( $atts ) {
     else {
       return "";
     }
-  }, $other_groups));
+  }, $other_groups)));
 
   // Translations
   $membro = $en ? "Member of" : "Membro di";
 
-  if (count($single_groups) > 0) {
+  if ($single_group_text != "") {
     $single_group_block = <<<END
     <ul>
       {$single_group_text}
@@ -786,7 +786,7 @@ function dm_manager_person_details_shortcode( $atts ) {
     $single_group_block = "";
   }
 
-  if (count($other_groups) > 0) {
+  if ($other_group_text != "") {
     $other_group_block = <<<END
     <h5>{$membro}:</h5>
         <ul>
