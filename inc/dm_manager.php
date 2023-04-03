@@ -153,7 +153,7 @@ function people_manager_display($data, $fields, $table, $date_format, $no_data_m
 	} else if ($field == 'person._id') {
 					$val = '<a href="' . ($en ? '/en' : '') . '/scheda-personale/?person_id=' . $val . '">'
 					. '<i class="fas fa-id-card fa-fw"></i></a>';
-	} else if ($field == 'affiliations') {
+	} else if ($field == 'affiliations' || $field == 'person.affiliations') {
 		$val = implode(', ', array_map(function ($a) { return $a['name']; }, $val));
 	}
 				$ret[]='<td>'.$val.'</td>';
