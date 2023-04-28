@@ -16,9 +16,8 @@ function dm_manager_get_role_label($role, $en, $genre = 'm') {
 		'Dottorando' => ['Dottorando', 'Dottoranda', 'Ph.D. Student', 'Ph.D. Student'],
 		'PTA' => ['Personale Tecnico Amministrativo', 'Personale Tecnico Amministrativo', 'Administrative Staff', 'Administrative Staff'],
 		'Professore Emerito' => ['Professore Emerito', 'Professore Emerito', 'Emeritus Professor', 'Emeritus Professor'],
-		'Collaboratore e Docente Esterno' => ['Collaboratore e Docente Esterno', 'Collaboratrice e Docente Esterna', 'External Collaborator', 'External Collaborator'],
-		'Collaboratore' => ['Collaboratore', 'Collaboratrice', 'Collaborator', 'Collaborator'], 
-		'Docente Esterno' => ['Docente Esterno', 'Docente Esterna', 'External Professor', 'External Professor'],
+		'Collaboratore' => ['Collaboratore', 'Collaboratrice', 'Affiliate Member', 'Affiliate Member'], 
+		'Docente Esterno' => ['Docente con contratto esterno', 'Docente con contratto esterno', 'Adjunct Professor', 'Adjunct Professor'],
 		'Studente' => ['Studente', 'Studentessa', 'Student', 'Student'],
 	];
 

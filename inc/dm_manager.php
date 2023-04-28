@@ -521,15 +521,13 @@ function dm_manager_person_details_shortcode( $atts ) {
   }
 
   // Generate the qualification string
-  $qualification = implode(", ", array_map(function ($s) use ($en, $p) { 
-    $gender = ($p['gender'] == 'Uomo') ? 'm' : 'f';
-    return dm_manager_get_role_label($s['qualification'], $en, $gender); 
-  }, $s));
+  $gender = ($p['gender'] == 'Uomo') ? 'm' : 'f';
+  $qualification = implode(", ", array_map(function ($s) use ($en, $gender, $person_id) {
+    return dm_manager_get_role_label($s['qualification'], $en, $gender);
+  }, $p['staffs']));
 
   // Gruppo di ricerca
-  $research_group = implode(", ", array_map(function ($ss) use ($en) { 
-    return dm_manager_get_research_group_label($ss['SSD'], $en); 
-  }, $s));
+  $research_group = dm_manager_get_research_group_label($p['staff']['SSD'], $en);
 
   $email = $p['email'];
   $phone = $p['phone'];
@@ -650,7 +648,7 @@ function dm_manager_person_details_shortcode( $atts ) {
       $recent_publications = "";
     }
 
-    if ($grant_text == "" && $arpi_data == "") {
+    if ($grant_text == "" && $arpi_data == "" && !$p['orcid'] && !$p['google_scholar']) {
       $research_accordion = "";
     }
     else {
@@ -815,8 +813,6 @@ function dm_manager_person_details_shortcode( $atts ) {
   else {
     $duties_accordion = "";
   }
-
-  
 
   return <<<END
   <div class="entry-content box clearfix">

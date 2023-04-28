@@ -2,6 +2,10 @@
 // Exit if accessed directly
 if ( !defined( 'ABSPATH' ) ) exit;
 
+// People have been disabled, since we have migrated the data to dm-manager. 
+// Leonardo Robol, 07/04/2023.
+return;
+
 function cptui_register_my_cpts() {
 
 	/**
