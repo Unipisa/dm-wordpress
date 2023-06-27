@@ -39,14 +39,15 @@ $sublvl = 0;
                                 <div class="brand site-title">
                                     <!-- Your site title as branding in the menu -->
                                     <?php if (is_main_site()) { ?>
-                                        <?php $blogname = __(get_bloginfo('name', 'display'), 'unipi-child'); ?>
+                                        <?php $blogname = __(get_bloginfo('name', 'display'), 'unipi-child'); ?>                                        
                                         <?php
-                                            if (has_custom_logo() && $show !== 'title') {
-                                                the_custom_logo();
-                                            } else {
-                                                echo '<a class="site-title h2" rel="home" href="<?php echo esc_url(home_url('/')); ?>" title="<?php echo esc_attr($blogname); ?>" itemprop="url">' . $blogname . '</a>';
-                                            }
-                                            ?>
+                                        if(ICL_LANGUAGE_CODE == 'it') {
+                                            echo '<a class="custom-logo-link" rel="home" href="' . esc_url(home_url('/')) . '" title="' . esc_attr($blogname) . '" itemprop="url"><img src="/wp-content/uploads/2022/07/matematica_dx_bianco-1.png" class="img-fluid" /></a>';
+                                        } else {
+                                            echo '<a class="custom-logo-link" rel="home" href="' . esc_url(home_url('/')) . '" title="' . esc_attr($blogname) . '" itemprop="url"><img src="/wp-content/uploads/2023/05/matematica_dx_bianco-2.png" class="img-fluid" /></a>';
+                                        }
+                                        ?>
+
 
                                         <?php
                                     } else { ?>
@@ -57,13 +58,15 @@ $sublvl = 0;
                                         $blogname = __('Dipartimento di Matematica', 'unipi');
                                         $sublvl++;
                                         ?>
-                                        <a class="site-title h2" href="<?php echo esc_url(network_site_url()); ?>" title="<?php echo esc_attr($blogname); ?>" itemprop="url"><?php
-                                            if (has_custom_logo() && $show !== 'title') {
-                                                the_custom_logo(1);
-                                            } else {
-                                                echo $blogname;
-                                            }
-                                            ?></a><br />
+                                        
+                                        <?php
+                                        if(ICL_LANGUAGE_CODE == 'it') {
+                                            echo '<a class="custom-logo-link" rel="home" href="' . esc_url(network_site_url()) . '" title="' . esc_attr($blogname) . '" itemprop="url"><img src="/wp-content/uploads/2022/07/matematica_dx_bianco-1.png" class="img-fluid" /></a>';
+                                        } else {
+                                            echo '<a class="custom-logo-link" rel="home" href="' . esc_url(network_site_url()) . '" title="' . esc_attr($blogname) . '" itemprop="url"><img src="/wp-content/uploads/2023/05/matematica_dx_bianco-2.png" class="img-fluid" /></a>';
+                                        }
+                                        ?>
+                                        <br />
                                             <a class="site-sub-title d-inline-block mt-2" rel="home" href="<?php echo esc_url(home_url('/')); ?>" title="<?php echo esc_attr(get_bloginfo('name', 'display')); ?>" itemprop="url"><?= $subsite; ?></a>
                                     <?php }
                                     ?><!-- end custom logo -->
