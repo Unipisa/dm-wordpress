@@ -168,7 +168,11 @@ function people_manager_display($data, $fields, $table, $date_format, $no_data_m
           . '<i class="fas fa-id-card fa-fw"></i></a>';
         } else if ($field == 'affiliations' || $field == 'person.affiliations') {
           $val = implode(', ', array_map(function ($a) { return $a['name']; }, $val));
-        }
+	} else if ($field == 'SSD_name') {
+	  $val = get_dotted_field($row, 'SSD', $date_format);
+	  $val = dm_manager_get_research_group_label($val, $en);
+	}
+
         $ret[]='<td>'.$val.'</td>';
       }
       $ret[]='</tr>';

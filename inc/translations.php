@@ -56,10 +56,10 @@ function dm_manager_get_research_group_label($SSD, $en) {
           $research_group = $en ? 'Mathematical Analysis' : 'Analisi Matematica';
           break;
         case 'MAT/06':
-          $research_group = $en ? 'Probability' : 'Probabilità';
+          $research_group = $en ? 'Probability and Mathematical Statistics' : 'Probabilità e Statistica Matematica';
           break;
         case 'MAT/07':
-          $research_group = $en ? 'Mathematical physics' : 'Fisica Matematica';
+          $research_group = $en ? 'Mathematical Physics' : 'Fisica Matematica';
           break;
         case 'MAT/08':
           $research_group = $en ? 'Numerical Analysis' : 'Analisi Numerica';
