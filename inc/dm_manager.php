@@ -40,7 +40,6 @@ function dm_manager_get_by_id($model, $id) {
   $headers[] = 'Accept: application/json';
   $headers[] = 'Authorization: Bearer ' . DM_MANAGER_TOKEN;
   curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
-  
   $result = curl_exec($ch);
   
   if (curl_errno($ch)) {
@@ -51,7 +50,6 @@ function dm_manager_get_by_id($model, $id) {
   curl_close($ch);
   
   $response = array();
-  
   if ($httpcode == 200) {
     $response['data'] = json_decode($result, true);
   }
@@ -149,6 +147,12 @@ function people_manager_display($data, $fields, $table, $date_format, $no_data_m
         else if ($field == 'roomAssignment.room.floor') {
           if ($val == "0") {
             $val = $en ? "Ground floor" : "Piano terra";
+          }
+          else if ($val == "1") {
+            $val = $en ? "First floor" : "Primo piano";
+          }
+          else if ($val == "2") {
+            $val = $en ? "Second floor" : "Secondo piano";
           }
         }
         else if ($field == 'person.email' && $val!='') {
@@ -492,6 +496,8 @@ add_shortcode('grant_manager_details', 'grant_manager_details_shortcode');
 
 function dm_manager_person_details_shortcode( $atts ) {
   $en = get_locale() !== 'it_IT';
+  $debug = [];
+  $debug[] = "<!-- dm_manager_person_details_shortcode -->";
   
   
   $dateFormat = 'M d, Y';
@@ -505,6 +511,7 @@ function dm_manager_person_details_shortcode( $atts ) {
   $p = $res['data'];
   $res = dm_manager_get('staff', '-endDate', 'person=' . $person_id . ',endDate__gte_or_null=today,startDate__lte_or_null=today');
   $s = $res['data'];
+  $debug[] = $res['debug'];
   
   // Get the groups for which the user is either member, chair, or vice
   $res = dm_manager_get('group', 'name', 'members=' . $person_id . ',endDate__gte_or_null=today,startDate__lte_or_null=today');
@@ -550,6 +557,7 @@ function dm_manager_person_details_shortcode( $atts ) {
   $qualification = implode(", ", array_map(function ($s) use ($en, $gender, $person_id) {
     return dm_manager_get_role_label($s['qualification'], $en, $gender);
   }, $p['staffs']));
+  $debug[] = "<!--" . json_encode($p) . "-->";
   
   // Gruppo di ricerca
   $research_group = dm_manager_get_research_group_label($p['staff']['SSD'], $en);
@@ -847,8 +855,9 @@ function dm_manager_person_details_shortcode( $atts ) {
     </p>
     END;
   }
-  
+  $debug_text = implode("\n",$debug);
   return <<<END
+   {$debug_text} 
   <div class="entry-content box clearfix">
   <div class="d-flex flex-wrap align-middle">
   <div class="mr-4 mb-4">
