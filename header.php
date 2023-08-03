@@ -42,9 +42,9 @@ $sublvl = 0;
                                         <?php $blogname = __(get_bloginfo('name', 'display'), 'unipi-child'); ?>                                        
                                         <?php
                                         if(ICL_LANGUAGE_CODE == 'it') {
-                                            echo '<a class="custom-logo-link" rel="home" href="' . esc_url(home_url('/')) . '" title="' . esc_attr($blogname) . '" itemprop="url"><img src="/wp-content/uploads/2022/07/matematica_dx_bianco-1.png" class="img-fluid" /></a>';
+                                            echo '<a class="custom-logo-link pt-1" rel="home" href="' . esc_url(home_url('/')) . '" title="' . esc_attr($blogname) . '" itemprop="url"><img src="/wp-content/uploads/2022/07/matematica_dx_bianco-1.png" class="img-fluid" /></a>';
                                         } else {
-                                            echo '<a class="custom-logo-link" rel="home" href="' . esc_url(home_url('/')) . '" title="' . esc_attr($blogname) . '" itemprop="url"><img src="/wp-content/uploads/2023/05/matematica_dx_bianco-2.png" class="img-fluid" /></a>';
+                                            echo '<a class="custom-logo-link pt-1" rel="home" href="' . esc_url(home_url('/')) . '" title="' . esc_attr($blogname) . '" itemprop="url"><img src="/wp-content/uploads/2023/05/matematica_dx_bianco-2.png" class="img-fluid" /></a>';
                                         }
                                         ?>
 
@@ -61,9 +61,9 @@ $sublvl = 0;
                                         
                                         <?php
                                         if(ICL_LANGUAGE_CODE == 'it') {
-                                            echo '<a class="custom-logo-link" rel="home" href="' . esc_url(network_site_url()) . '" title="' . esc_attr($blogname) . '" itemprop="url"><img src="/wp-content/uploads/2022/07/matematica_dx_bianco-1.png" class="img-fluid" /></a>';
+                                            echo '<a class="custom-logo-link pt-1" rel="home" href="' . esc_url(network_site_url()) . '" title="' . esc_attr($blogname) . '" itemprop="url"><img src="/wp-content/uploads/2022/07/matematica_dx_bianco-1.png" class="img-fluid" /></a>';
                                         } else {
-                                            echo '<a class="custom-logo-link" rel="home" href="' . esc_url(network_site_url()) . '" title="' . esc_attr($blogname) . '" itemprop="url"><img src="/wp-content/uploads/2023/05/matematica_dx_bianco-2.png" class="img-fluid" /></a>';
+                                            echo '<a class="custom-logo-link pt-1" rel="home" href="' . esc_url(network_site_url()) . '" title="' . esc_attr($blogname) . '" itemprop="url"><img src="/wp-content/uploads/2023/05/matematica_dx_bianco-2.png" class="img-fluid" /></a>';
                                         }
                                         ?>
                                         <br />
@@ -73,7 +73,7 @@ $sublvl = 0;
                                 </div>
                             </div>
                             <div class="col-5 col-sm-4 d-flex align-items-top justify-content-end">
-                                <a href="https://www.unipi.it" class="pt-3"><img src="<?= get_template_directory_uri() ?>/images/cherubino-white.svg" alt="cherubino" class="img-fluid logocherubino" /></a>
+                                <a href="https://www.unipi.it" class="pt-2"><img src="<?= get_template_directory_uri() ?>/images/cherubino-white.svg" alt="cherubino" class="img-fluid logocherubino" /></a>
                             </div>
                         </div>
                         <div class="row small pt-1 pb-2">
