@@ -854,7 +854,7 @@ function dm_manager_person_details_shortcode( $atts ) {
   $about = htmlspecialchars($en ? $p['about_en'] : $p['about_it']);
   if ($about !== "") {
     $about = <<<END
-    <p>
+    <p class="mb-4">
     {$about}
     </p>
     END;
@@ -862,7 +862,7 @@ function dm_manager_person_details_shortcode( $atts ) {
   $debug_text = implode("\n",$debug);
   return <<<END
    {$debug_text} 
-  <div class="entry-content box clearfix">
+  <div class="entry-content box clearfix mb-0">
   <div class="d-flex flex-wrap align-middle">
   <div class="mr-4 mb-4">
   <img width="280" height="280" src="{$imageUrl}" class="rounded img-fluid" alt="" decoding="async">
