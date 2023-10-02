@@ -11,7 +11,7 @@ define('TOKENARPILINK', 'to be defined in secrets.php');
 
 class Unimap
 {
-    private $anno;
+    // private $anno;
     private $corso;
     
     function __construct()
@@ -311,13 +311,19 @@ function get_persona( $atts ) {
 
     $r = new Unimap();
     //$ret = $r->getPersona($id);
-    $anno = get_field('anno', 'option');
-    if(!$anno) {
-        $anno = date('Y') - 1;
+    // $anno = get_field('anno', 'option');
+    $anno = 0;
+
+    // if (! $anno) {
+    $anno = intval(date('Y'));
+    if (intval(date('m')) < 10) {
+        $anno = $anno - 1;
     }
+    $anno = strval($anno);
+    // }
     $ret .= $r->getRegistri($id, $anno);
 
-    return $ret;
+    return "<!-- anno: $anno  -->\n" . $ret;
 }
 add_shortcode('persona', 'get_persona');
 
