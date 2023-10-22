@@ -87,7 +87,13 @@ function dm_manager_get($model, $sort_field, $filter) {
     }
   }
   
-  $url = DM_MANAGER_URL . $model . '?' . implode('&', $query);
+  $base = DM_MANAGER_URL;
+
+  if (strpos($model, "public/", 0) == 0) {
+	$base = 'https://manage.develop.lb.cs.dm.unipi.it/api/v0/';
+  }
+
+  $url = $base . $model . '?' . implode('&', $query);
   $ret[] = '<!-- QUERY_STRING [' . $url . '] -->';
   
   curl_setopt($ch, CURLOPT_URL, $url);
@@ -497,6 +503,19 @@ function grant_manager_details_shortcode( $atts ) {
 }
 
 add_shortcode('grant_manager_details', 'grant_manager_details_shortcode');
+
+/* Shortcode */
+function event_manager_shortcode( $atts ) {
+  $resp = dm_manager_get('public/seminars', "sort", "filter");
+  $ret[] = "<ul>";
+  foreach($resp as $row) { 
+    $ret[] = "<li><a href='/seminario/?id=".$row['_id']."'>".$row['title']."</a></li>";
+  }
+  $ret[] = "</ul>";
+  return implode("\n", $ret);
+}
+
+add_shortcode('event_manager', 'event_manager_shortcode');
 
 function dm_manager_person_details_shortcode( $atts ) {
   $en = get_locale() !== 'it_IT';
