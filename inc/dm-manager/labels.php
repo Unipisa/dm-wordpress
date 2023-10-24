@@ -1,7 +1,15 @@
 <?php
 
-// This file includes all the translation of rooms, qualifications, and similar items that
-// are found throughout the website. 
+function dm_manager_building_name($val, $en=false) {
+    if ($val == 'A') return $en ? 'Building A' : 'Edificio A';
+    if ($val == 'B') return $en ? 'Building B' : 'Edificio B';
+    if ($val == 'X') return 'ex DMA';
+    return $val;
+  }
+
+function format_person_name($ob) {
+    return $ob['firstName'] . " " . $ob['lastName'] . " (" . implode(', ', array_map(function ($a) {return $a['name'];},$ob['affiliations'])) . ")";
+} 
 
 function dm_manager_get_role_label($role, $en, $genre = 'm') {
 	$ret = $role;
@@ -92,5 +100,4 @@ function dm_manager_floor_label($floor, $en) {
 
     return $floor_desc;
 }
-
 ?>
