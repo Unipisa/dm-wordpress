@@ -74,10 +74,11 @@ function get_dotted_field($obj, $dotted_field, $date_format) {
     }
     
     $base = DM_MANAGER_URL;
-  
-    if (strpos($model, "public/", 0) == 0) {
-      $base = 'https://manage.develop.lb.cs.dm.unipi.it/api/v0/';
-    }
+
+    // LR: Sostituito strpos con str_contains, ma commentato perché assumo che non ci serva più. 
+    // if (str_contains($model, "public/")) {
+    //   $base = 'https://manage.develop.lb.cs.dm.unipi.it/api/v0/';
+    // }
   
     $url = $base . $model . '?' . implode('&', $query);
     $ret[] = '<!-- QUERY_STRING [' . $url . '] -->';

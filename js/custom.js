@@ -4,6 +4,11 @@ function compile_markdown() {
   if (grant_description) {
     grant_description.innerHTML = marked.parse(grant_description.innerHTML)
   }
+
+  // Also compile all elements with class "markdown-compile"
+  Array.from(document.getElementsByClassName('markdown-compile')).forEach(el => {
+	  el.innerHTML = marked.parse(el.innerHTML)
+  })
 }
 
 

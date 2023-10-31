@@ -10,7 +10,7 @@ include_once('dm-manager/labels.php');
 include_once('dm-manager/rooms.php');
 include_once('dm-manager/events.php');
 include_once('dm-manager/people.php');
-
+include_once('dm-manager/calendar.php');
 
 
 /* Shortcode */
@@ -323,9 +323,6 @@ function grant_manager_details_shortcode( $atts ) {
 }
 
 add_shortcode('grant_manager_details', 'grant_manager_details_shortcode');
-
-
-
 
 function dm_manager_group_list($atts) {
   $en = get_locale() !== 'it_IT';
