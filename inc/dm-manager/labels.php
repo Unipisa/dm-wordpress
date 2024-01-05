@@ -7,6 +7,22 @@ function dm_manager_building_name($val, $en=false) {
     return $val;
   }
 
+function dm_manager_datetime($timestamp) {
+  try {
+    $d = new DateTime($timestamp, new DateTimeZone('UTC'));
+    $d->setTimeZone(new DateTimeZone('Europe/Rome'));
+    $formatted_date = $d->format('Y-m-d H:i');
+  }
+  catch (Exception $e) {
+    // If Datetime does not manage to parse the date, return whatever was in the 
+    // input; this is likely something that the end user will be able to parse
+    // directly.
+    $formatted_date = $timestamp;
+  }
+
+  return $formatted_date;
+}
+
 function format_person_name($ob) {
     return $ob['firstName'] . " " . $ob['lastName'] . " (" . implode(', ', array_map(function ($a) {return $a['name'];},$ob['affiliations'])) . ")";
 } 

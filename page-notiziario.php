@@ -8,6 +8,7 @@
 if ( ! defined( 'ABSPATH' ) ) {
     exit; // Exit if accessed directly.
 }
+
 // seminari, conferenze
 ?>
 <!DOCTYPE html>
@@ -174,18 +175,125 @@ if ( ! defined( 'ABSPATH' ) ) {
         restore_current_blog();
 
         echo implode("\n", $ret);
+    }    
+    ?>
+
+    <?php
+    function print_seminars() {
+        $tomorrow = date('Y-m-d', time() + 86400);
+        $nextweek = date('Y-m-d', time() + 86400 * 8);
+
+        $h = curl_init();
+
+        curl_setopt($h, CURLOPT_URL, "https://manage.dm.unipi.it/api/v0/public/seminars?from={$tomorrow}&to={$nextweek}");
+        curl_setopt($h, CURLOPT_RETURNTRANSFER, true);
+
+        $seminars = curl_exec($h);
+        $seminars = json_decode($seminars);
+        $seminars = $seminars->data;
+        curl_close($h);
+
+        $seminar_block = "";
+
+        // Sort seminars by increasing datetime
+        usort($seminars, function ($a, $b) {
+            $dateA = new DateTimeImmutable($a->startDatetime);
+            $dateB = new DateTimeImmutable($b->startDatetime);
+            return $dateA->getTimestamp() - $dateB->getTimestamp();
+        });
+
+        foreach ($seminars as $s) {
+            $speaker = $s->speaker->firstName . " " . $s->speaker->lastName;
+            $d = (new DateTimeImmutable($s->startDatetime))->setTimeZone(new DateTimeZone("Europe/Rome"));
+            $day = $d->format('Y-m-d');
+            $starttime = $d->format('H:i');
+            $endtime = $d->add(new DateInterval("PT" . $s->duration . "M"))->format('H:i');
+            $location = $s->conferenceRoom->name;
+            $url = "https://www.dm.unipi.it/seminario/?id={$s->_id}";
+            $seminar_block .= <<<END
+            <div>
+                <h3 class="title entry-title">
+                    <a href="$url" rel="bookmark">
+                        $s->title - $speaker
+                    </a></h3>
+                <div class="entry-meta small">
+                    <span class="publish-date">Data: $day</span>
+                    <span class="hours"> - ore: $starttime - $endtime</span>
+                    <span class="location"> - luogo: $location</span>
+                </div>
+            </div>
+            END;
+        }
+
+        if (count($seminars) == 0) { 
+            $seminar_block = "<p>- Nessun evento in programma -</p>";
+        }
+
+        return $seminar_block;
     }
-    
+
+    function print_conferences() {
+        $tomorrow = date('Y-m-d', time() + 86400);
+        $nextweek = date('Y-m-d', time() + 86400 * 8);
+
+        $h = curl_init();
+
+        curl_setopt($h, CURLOPT_URL, "https://manage.dm.unipi.it/api/v0/public/conferences?from={$tomorrow}&to={$nextweek}");
+        curl_setopt($h, CURLOPT_RETURNTRANSFER, true);
+
+        $conferences = curl_exec($h);
+        $conferences = json_decode($conferences);
+        $conferences = $conferences->data;
+        curl_close($h);
+
+        $conference_block = "";
+
+        // Sort seminars by increasing datetime
+        usort($conferences, function ($a, $b) {
+            $dateA = new DateTimeImmutable($a->startDate);
+            $dateB = new DateTimeImmutable($b->startDate);
+            return $dateA->getTimestamp() - $dateB->getTimestamp();
+        });
+
+        foreach ($conferences as $c) {
+            $starttime = (new DateTimeImmutable($c->startDate))->setTimeZone(new DateTimeZone("Europe/Rome"));
+            $starttime = $starttime->format('Y-m-d');
+            $endtime   = (new DateTimeImmutable($c->endDate))->setTimeZone(new DateTimeZone("Europe/Rome"));
+            $endtime   = $endtime->format('Y-m-d');
+            $location = $c->conferenceRoom->name;
+            $url = "https://www.dm.unipi.it/conferenza/?id={$c->_id}";
+            $conference_block .= <<<END
+            <div>
+                <h3 class="title entry-title">
+                    <a href="$url" rel="bookmark">
+                        $c->title
+                    </a></h3>
+                <div class="entry-meta small">
+                    <span class="publish-date">Date: $starttime &mdash; $endtime</span>
+                    <span class="location"> - luogo: $location</span>
+                </div>
+            </div>
+            END;
+        }
+
+        if (count($conferences) == 0) { 
+            $conference_block = "<p>- Nessun evento in programma -</p>";
+        }
+
+        return $conference_block;
+    }
 
     ?>
     <h2>Prossimi seminari</h2>
     <div style="height: 10px; margin-top: -10px;">&nbsp;</div>
-    <?php print_events(75) ?>
+    <?php // print_events(75) ?>
+    <?php echo print_seminars() ?>
     <p>&nbsp;</p>
 
     <h2>Prossime conferenze a Pisa</h2>
     <div style="height: 10px; margin-top: -10px;">&nbsp;</div>
-    <?php print_events(90, 196) ?>
+    <?php // print_events(90, 196) ?>
+    <?php echo print_conferences() ?>
     <p>&nbsp;</p>
     
     <h2>Ultime notizie</h2>

@@ -305,9 +305,11 @@ function dm_manager_person_details_shortcode( $atts ) {
     </p>
     END : "";
     
+    $cv_text = $en ? "Please visit the above website to access the CV" : "Il CV è disponibile a questa pagina web";
     $web_text = $web ? <<<END
     <p class="my-1">
-    <i class="fas fa-link mr-2"></i><a href="{$web}">{$web}</a>
+    <i class="fas fa-link mr-2"></i><a href="{$web}">{$web}</a><br>
+    <span class="small text-muted">(${cv_text})</span>
     </p>
     END : "";
     
@@ -440,8 +442,8 @@ function dm_manager_person_details_shortcode( $atts ) {
     <img width="280" height="280" src="{$imageUrl}" class="rounded img-fluid" alt="" decoding="async">
     </div>
     <div class="ml-4">
-    <div class="h2 mb-3">{$p['firstName']} {$p['lastName']}</div>
-    <div class="h5 mb-3">{$qualification}</div>
+    <div class="h2 mb-2">{$p['firstName']} {$p['lastName']}</div>
+    <div class="h5 mb-2">{$qualification}</div>
     {$research_group_text}
     {$room_desc}
     {$email_text}

@@ -11,6 +11,7 @@ include_once('dm-manager/rooms.php');
 include_once('dm-manager/events.php');
 include_once('dm-manager/people.php');
 include_once('dm-manager/calendar.php');
+include_once('dm-manager/widgets.php');
 
 
 /* Shortcode */

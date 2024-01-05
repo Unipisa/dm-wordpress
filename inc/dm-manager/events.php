@@ -27,29 +27,18 @@ function phd_course_detail_shortcode( $atts ) {
     // Sort the lessons by date
     $sorted_lessons = $data['lessons'];
     usort($sorted_lessons, function ($a, $b) {
-        return $a['date'] < $b['date'];
+        return $a['date'] > $b['date'];
     });
-
-    // We use this as a cache for the room names
-    $rooms = array();
 
     $speaker = format_person_name($data['lecturer']);
     $lessons = "<ul>";
     foreach ($sorted_lessons as $l) {
-        $d = new DateTime($l['date']);
+        $d = new DateTime($l['date'], new DateTimeZone('UTC'));
+        $d->setTimeZone(new DateTimeZone('Europe/Rome'));
         $formatted_date = $d->format('Y-m-d H:i');
-
-        $room_id = $l['conferenceRoom'];
-        if (! array_key_exists($room_id, $rooms)) {
-            $dr = dm_manager_get_by_id('conference-room', $room_id);
-            $rooms[$room_id] = dm_manager_building_name($dr['data']['room']['building'], true) . ", " . 
-                dm_manager_floor_label($dr['data']['room']['floor'], true) . ", " . 
-                $dr['data']['name'];
-        }
-        $room_name = $rooms[$room_id];
-
+        $room_name = $l['conferenceRoom']['name'];
         $lessons .= <<<END
-           <li>{$formatted_date} ({$room_name} &ndash; {$l['duration']} minutes).</li>
+           <li>{$formatted_date} ({$l['duration']} minutes), {$room_name}.</li>
         END;
     }
     $lessons .= "</ul>";
@@ -77,4 +66,32 @@ function phd_course_detail_shortcode( $atts ) {
 
 add_shortcode('phd_course_detail', 'phd_course_detail_shortcode');
 
+// Getting the list of seminars, with optional filters
+function dm_manager_seminars_shortcode( $atts ) {
+    extract(shortcode_atts(array(
+        'filters' => false,
+    ), $atts));
+
+    $resp = dm_manager_get('public/seminars', "-endDate", $filters);
+
+    $output = "";
+    foreach ($resp as $seminar) {
+        $datetime = dm_manager_datetime($seminar['startDatetime']);
+        $speaker = format_person_name($seminar['speaker']);
+
+        $output .= <<<END
+            <div class="">                
+                <h4>Seminar: {$seminar['title']} ({$speaker})</h4>
+                <p>
+                  {$datetime} &ndash;
+                  {$seminar['conferenceRoom']['name']}
+                </p>
+            </div>
+        END;
+    }
+    
+    return $output . var_export($resp, true);
+}
+
+add_shortcode('seminars', 'dm_manager_seminars_shortcode');
 ?>
