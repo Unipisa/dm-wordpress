@@ -18,7 +18,12 @@ add_shortcode('event_manager', 'event_manager_shortcode');
 
 // Shortcode to show an event page
 function phd_course_detail_shortcode( $atts ) {
-    $phd_course_id = $_GET['phd_course_id'];
+    $phd_course_id = $_GET['phd_course_id'] ?? null;
+
+    if (!$phd_course_id) {
+        return '<p>Error: No course ID provided.</p>';
+    }
+
     if ($phd_course_id) {
         $data = dm_manager_get_by_id('event-phd-course', $phd_course_id);
         $data = $data['data'];
@@ -29,8 +34,9 @@ function phd_course_detail_shortcode( $atts ) {
     usort($sorted_lessons, function ($a, $b) {
         return $a['date'] > $b['date'];
     });
-
-    $speaker = format_person_name($data['lecturer']);
+    
+    // commented line below as it wasn't used in the code? creating fatal error on phd course detail page
+    //$speaker = format_person_name($data['lecturers']);
     $lessons = "<ul>";
     foreach ($sorted_lessons as $l) {
         $d = new DateTime($l['date'], new DateTimeZone('UTC'));
@@ -45,7 +51,7 @@ function phd_course_detail_shortcode( $atts ) {
 
     $person_card = "";
     foreach ($data['lecturers'] as $lecturer) {
-        $person_card .= generate_external_person_card($lecturer);
+        $person_card .= generate_person_card($lecturer);
     }
 
     $description = create_accordion("Description", $data['description']);

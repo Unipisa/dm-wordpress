@@ -1,10 +1,14 @@
 <?php
 
 function isInternal($p) {
+    if (! is_array($p['staffs'])) {
+       return false;
+    }
     return count($p['staffs']) > 0 && $p['staffs'][0]['isInternal'];
 }
 
 function people_manager_display($data, $fields, $table, $date_format, $no_data_message) {
+  // var_dump($data); exit(0);
   $ret[] = '<!-- 200 OK -->';
   $en = get_locale() !== 'it_IT';
   if (count($data)) {
@@ -52,11 +56,22 @@ function people_manager_display($data, $fields, $table, $date_format, $no_data_m
           $val = '<a href="' . ($en ? '/en' : '') . '/scheda-personale/?person_id=' . $val . '">'
           . '<i class="fas fa-id-card fa-fw"></i></a>';
         } else if ($field == 'affiliations' || $field == 'person.affiliations') {
-          $val = implode(', ', array_map(function ($a) { return $a['name']; }, $val));
+	  if (is_array($val)) {
+            $val = implode(', ', array_map(function ($a) { return $a['name']; }, $val));
+          } else {
+            $val = '';
+          }
 	} else if ($field == 'SSD_name') {
-	  $val = get_dotted_field($row, 'SSD', $date_format);
-	  $val = dm_manager_get_research_group_label($val, $en);
-	}
+          $ssd_values = get_dotted_field($row, 'SSD', $date_format);
+          if (is_array($ssd_values)) {
+            $val = implode(', ', array_map(function ($ssd) use ($en) { 
+              return dm_manager_get_research_group_label($ssd, $en); 
+            }, $ssd_values));
+          } else {
+          // Fallback for backwards compatibility if still a string
+          $val = dm_manager_get_research_group_label($ssd_values, $en);
+          }
+        }
 
         $ret[]='<td>'.$val.'</td>';
       }
@@ -74,8 +89,7 @@ function dm_manager_person_details_shortcode( $atts ) {
     $en = get_locale() !== 'it_IT';
     $debug = [];
     $debug[] = "<!-- dm_manager_person_details_shortcode -->";
-    
-    
+        
     $dateFormat = 'M d, Y';
     $person_id = $_GET['person_id'];
     
@@ -148,9 +162,11 @@ function dm_manager_person_details_shortcode( $atts ) {
       $address  = ($room['building'] == 'X') ? 'Via Buonarroti, 1/c, ' : 'L.go B. Pontecorvo, 5, ';
       $address .= '56127 Pisa (PI), Italy.';
       $floor_desc = dm_manager_floor_label($room['floor'], $en);
+      $room_id = $room['_id'];
       
       $address_desc =  dm_manager_building_name($room['building'], $en) . ', ' . $floor_desc . ', ' 
-      . ($en ? 'Room ' : 'Stanza ') .  $room['number'] . ', <br>'
+      . ($en ? "<a href=\"/en/map?sel=$room_id\">" : "<a href=\"/mappa?sel=$room_id\">")
+      . ($en ? 'Room ' : 'Stanza ') .  $room['number'] . '</a>, <br>'
       . $address;
     }
     catch (Exception $e) {
@@ -485,13 +501,22 @@ function generate_external_person_card($p, $badge = null) {
       $badge_block = "";
     }
     
+    if ($p['personalPage']) {
+      $personal_page_block = '<a href="' . htmlspecialchars($p['personalPage']) . '" target="_blank" rel="noopener noreferrer"><i class="fas fa-id-card fa-fw"></i></a>';
+    }
+    else {
+      $personal_page_block = '<i class="fas fa-id-card fa-fw"></i>';
+    }
+
     $pname = format_person_name($p);
     
+    $debug_block = "<pre>" . print_r($p, true) . "</pre>";
+
     return <<<END
     <div class="col-lg-6 col-12 py-2">
     <div class="card h-100 m-2 shadow-sm">
     <div class="card-body">
-    <i class="fas fa-id-card fa-fw"></i>
+    {$personal_page_block}
     <span class="card-title ml-2 h5">
     {$pname}
     {$badge_block}

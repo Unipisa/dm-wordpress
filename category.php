@@ -39,7 +39,7 @@ if(get_current_blog_id() == 1 && is_category(170) || is_category(171)) {
                     'meta_key'=>'date1',
                     'paged' => $paged,
                     'orderby'=>'meta_value',
-                    'order'=>'ASC'
+                    'order'=>'DESC'
                 );
                 break;
 
@@ -55,7 +55,7 @@ if(get_current_blog_id() == 1 && is_category(170) || is_category(171)) {
                     'meta_key'=>'date1',
                     'paged' => $paged,
                     'orderby'=>'meta_value',
-                    'order'=>'ASC'
+                    'order'=>'DESC'
                 );
                 break;
             
@@ -71,7 +71,7 @@ if(get_current_blog_id() == 1 && is_category(170) || is_category(171)) {
                     'meta_key'=>'date1',
                     'paged' => $paged,
                     'orderby'=>'meta_value',
-                    'order'=>'ASC'
+                    'order'=>'DESC'
                 );
                 break;
         }
@@ -82,7 +82,7 @@ if(get_current_blog_id() == 1 && is_category(170) || is_category(171)) {
             'meta_key'=>'date1',
             'paged' => $paged,
             'orderby'=>'meta_value',
-            'order'=>'ASC'
+            'order'=>'DESC'
         );
     } 
 

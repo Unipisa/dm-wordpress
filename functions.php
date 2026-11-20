@@ -15,7 +15,7 @@ function load_matomo_tracking() {
   _paq.push(['trackPageView']);
   _paq.push(['enableLinkTracking']);
   (function() {
-    var u="//matomo.delta.cs.dm.unipi.it/";
+    var u="//matomo.cs.dm.unipi.it/";
     _paq.push(['setTrackerUrl', u+'matomo.php']);
     _paq.push(['setSiteId', '6']);
     var d=document, g=d.createElement('script'), s=d.getElementsByTagName('script')[0];
@@ -25,8 +25,9 @@ function load_matomo_tracking() {
 <!-- End Matomo Code -->
 <?php
 }
-add_action('wp_head',
-'load_matomo_tracking');
+
+// Temporaneamente commentato perché matomo è giù. LR 11/03/2024
+add_action('wp_head', 'load_matomo_tracking');
 
 
 add_action( 'wp_enqueue_scripts', 'theme_enqueue_styles' );
@@ -440,5 +441,3 @@ EOF;
 }
 
 add_shortcode('table_sorter', 'table_sorter');
-
-

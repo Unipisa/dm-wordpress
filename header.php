@@ -11,6 +11,9 @@
 if (!defined('ABSPATH')) {
     exit; // Exit if accessed directly.
 }
+if (!defined('ICL_LANGUAGE_CODE')) {
+    define('ICL_LANGUAGE_CODE', 'en');
+}
 global $blog_id;
 $ancestor = 0;
 $sublvl = 0;
@@ -60,7 +63,11 @@ $sublvl = 0;
                                         ?>
                                         
                                         <?php
-                                        if(ICL_LANGUAGE_CODE == 'it') {
+                                        $current_locale = get_locale(); // Returns 'it_IT', 'en_US', etc.
+                                        $current_lang = substr($current_locale, 0, 2); // Extracts 'it', 'en', etc.
+
+                                        if($current_lang == 'it') {
+                                        //if(ICL_LANGUAGE_CODE == 'it') {
                                             echo '<a class="custom-logo-link pt-1" rel="home" href="' . esc_url(network_site_url()) . '" title="' . esc_attr($blogname) . '" itemprop="url"><img src="/wp-content/uploads/2022/07/matematica_dx_bianco-1.png" class="img-fluid" /></a>';
                                         } else {
                                             echo '<a class="custom-logo-link pt-1" rel="home" href="' . esc_url(network_site_url()) . '" title="' . esc_attr($blogname) . '" itemprop="url"><img src="/wp-content/uploads/2023/05/matematica_dx_bianco-2.png" class="img-fluid" /></a>';

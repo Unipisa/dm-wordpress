@@ -2,12 +2,14 @@
 // Exit if accessed directly
 if ( !defined( 'ABSPATH' ) ) exit;
 
-include 'secrets.php';
+include_once('secrets.php');
 
-define('API_URL', 'https://api.unipi.it:443/');
-define('TOKEN', 'to be defined in secrets.php');
-define('TOKENARPI', 'to be defined in secrets.php');
-define('TOKENARPILINK', 'to be defined in secrets.php');
+/*
+ * define('API_URL', 'https://api.unipi.it:443/');
+ * define('TOKEN', 'to be defined in secrets.php');
+ * define('TOKENARPI', 'to be defined in secrets.php');
+ * define('TOKENARPILINK', 'to be defined in secrets.php');
+ */
 
 class Unimap
 {

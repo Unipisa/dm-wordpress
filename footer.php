@@ -35,7 +35,7 @@ if (!defined('ABSPATH')) {
     <script>
       document.addEventListener('DOMContentLoaded', function(event) {
         cookieChoices.showCookieConsentBar('Questo sito utilizza cookie, anche di terze parti, al fine di garantire una migliore navigazione. Se si continua a navigare, si accetta il loro utilizzo.',
-          'OK', 'Cookie policy', 'https://www.unipi.it/index.php/documenti-ateneo/item/12721-privacy-policy/');
+          'OK', 'Cookie policy', 'https://www.unipi.it/privacy-policy/');
       });
     </script>
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>

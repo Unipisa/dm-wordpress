@@ -44,7 +44,7 @@ if ( ! defined( 'ABSPATH' ) ) {
                 array(
                     'key'=>'unipievents_startdate',
                     'compare' => '<=',
-                    'value' => time() + (7 * 24 * 60 * 60)
+                    'value' => time() + (14 * 24 * 60 * 60)
                 ),
             ),
             'meta_key'=>'unipievents_startdate',
@@ -181,11 +181,11 @@ if ( ! defined( 'ABSPATH' ) ) {
     <?php
     function print_seminars() {
         $tomorrow = date('Y-m-d', time() + 86400);
-        $nextweek = date('Y-m-d', time() + 86400 * 8);
+        $nexttwoweeks = date('Y-m-d', time() + 86400 * 15);
 
         $h = curl_init();
 
-        curl_setopt($h, CURLOPT_URL, "https://manage.dm.unipi.it/api/v0/public/seminars?from={$tomorrow}&to={$nextweek}");
+        curl_setopt($h, CURLOPT_URL, "https://manage.dm.unipi.it/api/v0/public/seminars?from={$tomorrow}&to={$nexttwoweeks}");
         curl_setopt($h, CURLOPT_RETURNTRANSFER, true);
 
         $seminars = curl_exec($h);
@@ -234,11 +234,11 @@ if ( ! defined( 'ABSPATH' ) ) {
 
     function print_conferences() {
         $tomorrow = date('Y-m-d', time() + 86400);
-        $nextweek = date('Y-m-d', time() + 86400 * 8);
+        $nexttwoweeks = date('Y-m-d', time() + 86400 * 15);
 
         $h = curl_init();
 
-        curl_setopt($h, CURLOPT_URL, "https://manage.dm.unipi.it/api/v0/public/conferences?from={$tomorrow}&to={$nextweek}");
+        curl_setopt($h, CURLOPT_URL, "https://manage.dm.unipi.it/api/v0/public/conferences?from={$tomorrow}&to={$nexttwoweeks}");
         curl_setopt($h, CURLOPT_RETURNTRANSFER, true);
 
         $conferences = curl_exec($h);
@@ -248,7 +248,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 
         $conference_block = "";
 
-        // Sort seminars by increasing datetime
+        // Sort conferences by increasing datetime
         usort($conferences, function ($a, $b) {
             $dateA = new DateTimeImmutable($a->startDate);
             $dateB = new DateTimeImmutable($b->startDate);
@@ -261,7 +261,7 @@ if ( ! defined( 'ABSPATH' ) ) {
             $endtime   = (new DateTimeImmutable($c->endDate))->setTimeZone(new DateTimeZone("Europe/Rome"));
             $endtime   = $endtime->format('Y-m-d');
             $location = $c->conferenceRoom->name;
-            $url = "https://www.dm.unipi.it/conferenza/?id={$c->_id}";
+            $url = "https://www.dm.unipi.it/en/conference/?id={$c->_id}";
             $conference_block .= <<<END
             <div>
                 <h3 class="title entry-title">
@@ -285,19 +285,19 @@ if ( ! defined( 'ABSPATH' ) ) {
 
     ?>
     <h2>Prossimi seminari</h2>
-    <div style="height: 10px; margin-top: -10px;">&nbsp;</div>
+    <div style="height: 10px; margin-top: -10px; padding-bottom: 20px;">&nbsp;</div>
     <?php // print_events(75) ?>
     <?php echo print_seminars() ?>
     <p>&nbsp;</p>
 
     <h2>Prossime conferenze a Pisa</h2>
-    <div style="height: 10px; margin-top: -10px;">&nbsp;</div>
+    <div style="height: 10px; margin-top: -10px; padding-bottom: 20px;">&nbsp;</div>
     <?php // print_events(90, 196) ?>
     <?php echo print_conferences() ?>
     <p>&nbsp;</p>
     
     <h2>Ultime notizie</h2>
-    <div style="height: 10px; margin-top: -10px;">&nbsp;</div>
+    <div style="height: 10px; margin-top: -10px; padding-bottom: 20px;">&nbsp;</div>
     <?php
     $type = 'post';
     $limit = 20;

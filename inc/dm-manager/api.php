@@ -2,7 +2,6 @@
 // Exit if accessed directly
 if ( !defined( 'ABSPATH' ) ) exit;
 
-
 function get_dotted_field($obj, $dotted_field, $date_format) {
     foreach (explode(".", $dotted_field) as $field) {
       $obj = $obj[$field];
@@ -58,8 +57,8 @@ function get_dotted_field($obj, $dotted_field, $date_format) {
       $key = $key_val[0];
       $val = $key_val[1];
       if ($key == 'current') {
-        $query[] = 'startDate__lt_or_null=today';
-        $query[] = 'endDate__gt_or_null=today';
+        $query[] = 'startDate__lte_or_null=today';
+        $query[] = 'endDate__gte_or_null=today';
       } elseif ($key == 'past') {
         $query[] = 'endDate__lt=today';
       } elseif ($key == 'perspective') {
@@ -72,7 +71,7 @@ function get_dotted_field($obj, $dotted_field, $date_format) {
         $query[] = $key . '=' . urlencode($val);
       }
     }
-    
+
     $base = DM_MANAGER_URL;
 
     // LR: Sostituito strpos con str_contains, ma commentato perché assumo che non ci serva più. 
@@ -81,6 +80,7 @@ function get_dotted_field($obj, $dotted_field, $date_format) {
     // }
   
     $url = $base . $model . '?' . implode('&', $query);
+    // var_dump($url); exit(0);
     $ret[] = '<!-- QUERY_STRING [' . $url . '] -->';
     
     curl_setopt($ch, CURLOPT_URL, $url);
@@ -109,6 +109,10 @@ function get_dotted_field($obj, $dotted_field, $date_format) {
     } else {
       $resp = array('data' => array(), 'debug' => implode("\n", $ret));
     }
+
+    // var_dump($httpcode); exit(0);
+    // var_dump($resp); exit(0);
+
     return $resp;
   }
 

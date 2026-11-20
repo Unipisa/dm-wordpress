@@ -2,7 +2,7 @@
 // Exit if accessed directly
 if ( !defined( 'ABSPATH' ) ) exit;
 
-include 'secrets.php';
+include_once('secrets.php');
 include_once('unimap.php');
 
 include_once('dm-manager/api.php');
@@ -12,6 +12,7 @@ include_once('dm-manager/events.php');
 include_once('dm-manager/people.php');
 include_once('dm-manager/calendar.php');
 include_once('dm-manager/widgets.php');
+include_once('dm-manager/planimetrie.php');
 
 
 /* Shortcode */
@@ -116,7 +117,19 @@ function thesis_manager_display($data, $fields, $table, $date_format, $no_data_m
                 $val[]= $advisor['firstName']."  ".$advisor['lastName'];
             }
             $val = implode(' and ', $val);
-          } 
+          } else if ($field == 'institutions') {
+            // Handle institutions array - show all institution names comma-separated
+            $institutions = $val;
+            $val = [];
+            if (is_array($institutions)) {
+              foreach ($institutions as $institution) {
+                if (isset($institution['name'])) {
+                  $val[] = $institution['name'];
+                }
+              }
+            }
+            $val = implode(', ', $val);
+          }
           $ret[]='<td>'.$val.'</td>';
         }
         $ret[]='</tr>';
@@ -197,8 +210,10 @@ function staff_manager_shortcode( $atts ) {
   $e_fields = array_map(function ($x) { return trim($x); }, $e_fields);
 //  $filter = implode(',', array_merge(explode(',', $filter),['current']));
   $resp = dm_manager_get('staff', $sort_field, $filter);
+  // var_dump($resp); exit(0);
   $ret[] = "";
   $ret[] = $resp['debug'];
+  // var_dump($ret); exit(0);
   $ret[] = people_manager_display($resp['data'], $e_fields, explode(',', $table), $date_format, $no_data_message);
   return implode("\n", $ret);
 }
@@ -210,7 +225,8 @@ function grant_manager_display($data, $date_format, $no_data_message) {
   if (count($data)) {
     $ret[] = '<ul>';
     foreach ($data as $grant) {
-      $ret[] = '<li class="mb-2 current' . strtolower($grant['ssd']) . ' ' .$grant['funds']. '">';
+      // echo implode(", ", $grant['SSD']);
+      $ret[] = '<li class="mb-2 current' . strtolower(implode(", ", $grant['SSD'])) . ' ' .$grant['funds']. '">';
       $ret[] = '<h5 class="mb-0 font-weight-bold">';
       $close = '';
       $ret[] = '<a href="/research/grant-details/?grant_id=' . $grant['_id'] . '">';
@@ -430,9 +446,29 @@ function dm_manager_group_cards($atts) {
     return generate_person_card($m);
   }, $group_members));
   
+  // Translation map
+  $translations = array(
+    'presidente' => array(
+      'it' => 'Presidente',
+      'en' => 'President'
+    ),
+    'vicepresidente' => array(
+      'it' => 'Vicepresidente',
+      'en' => 'Vice President'
+    )
+  );
+
+  $current_lang = apply_filters('wpml_current_language', NULL);
+  
   if ($group['chair'] && $member_filter($group['chair'])) {
     $chair = $group['chair'];
-    $chair_text = generate_person_card($chair, $group['chair_title']);    
+    $chair_title = $group['chair_title'];
+    $title_key = strtolower($chair_title);
+    if (isset($translations[$title_key][$current_lang])) {
+      $chair_title = $translations[$title_key][$current_lang];
+    }
+    $chair_text = generate_person_card($chair, $chair_title);
+    //$chair_text = generate_person_card($chair, $group['chair_title']);    
   }
   else {
     $chair_text = "";
@@ -440,7 +476,13 @@ function dm_manager_group_cards($atts) {
   
   if ($group['vice'] && $member_filter($group['vice'])) {
     $vice = $group['vice'];
-    $vice_text = generate_person_card($vice, $group['vice_title']);
+    $vice_title = $group['vice_title'];
+    $title_key = strtolower($vice_title);
+    if (isset($translations[$title_key][$current_lang])) {
+      $vice_title = $translations[$title_key][$current_lang];
+    }
+    $vice_text = generate_person_card($vice, $vice_title);
+    //$vice_text = generate_person_card($vice, $group['vice_title']);
   }
   else {
     $vice_text = "";

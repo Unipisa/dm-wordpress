@@ -99,7 +99,7 @@ function upcomingeventsms($atts) {
             }
             $ret[] = '<div class="media-body">';
         }
-        $ret[] = '<div class="entry-meta small">';
+        $ret[] = '<div class="entry-meta small" style="margin-bottom: 1rem !important;">';
 
         if($ed < strtotime('today')) {
             $ret[] = '<span class="badge badge-primary archivio mr-2">Archivio</span>';

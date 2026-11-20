@@ -1,0 +1,13 @@
+<wpml-config>
+  <gutenberg-blocks>
+    <gutenberg-block type="pb/accordion-item" translate="1">
+			<xpath>//h1</xpath>
+      <xpath>//h2</xpath>
+      <xpath>//h3</xpath>
+      <xpath>//h4</xpath>
+      <xpath>//h5</xpath>
+      <xpath>//h6</xpath>
+    </gutenberg-block>
+  </gutenberg-blocks>
+</wpml-config>
+
